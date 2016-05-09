@@ -2,13 +2,13 @@
 
 # from sqlalchemy import func
 
-from model import connect_to_db, db #add Models
+from model import connect_to_db, db, Popos #add Models
 from server import app
 # from datetime import datetime
 
 
 def load_popos():
-    """Load POPOS from u.popos into database."""
+    """Load POPOS from popos.csv into database."""
 
     print "POPOS"
 
@@ -16,11 +16,17 @@ def load_popos():
     # we won't be trying to add duplicate entries
     Popos.query.delete()
 
-    # Read u.popos file and insert data
-        #Iterate through data in "seed_data/u.popos"
+    # Read popos.csv file and parse data
+    for row in open("seed_data/popos.csv"):
+        row = row.rstrip()
 
-        #popos = Popos(name=name,
-        #              address=address, etc)
+        objectid, name, address, latitude, longitude, ptype = row.split(",")[:6] 
+
+        popos = Popos(name=name,
+                      address=address,
+                      latitude=latitude,
+                      longitude=longitude,
+                      ptype=ptype)
 
         # Add popos to the db session
         db.session.add(popos)
