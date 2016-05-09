@@ -3,3 +3,4 @@ env/
 secrets.sh
 .DS_Store
 project_notes.txt
+test.py
