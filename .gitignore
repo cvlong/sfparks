@@ -1,0 +1,5 @@
+env/
+*.pyc
+secrets.sh
+.DS_Store
+project_notes.txt
