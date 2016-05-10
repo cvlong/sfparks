@@ -29,11 +29,6 @@ class Popos(db.Model):
         return "<POPOS popos_id=%s address=%s>" % (self.popos_id, self.address)
 
 
-
-
-        popos = Popos(
-
-
 # class User(db.Model):
 #     """User on SFparks website."""
 
