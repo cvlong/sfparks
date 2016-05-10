@@ -35,6 +35,34 @@ def load_popos():
     db.session.commit()
 
 
+def load_posm():
+    """Load Park & Open Space Map from posm.csv into database."""
+
+    print "Park & Open Spaces"
+
+    # Delete all rows in table, so if we need to run this a second time,
+    # we won't be trying to add duplicate entries
+    Posm.query.delete()
+
+    # Read posm.csv file and parse data
+    for row in open("seed_data/posm.csv"):
+        row = row.rstrip()
+
+        name, ptype = row.split(",")[:2]
+        location = row.split(",")[-1]
+
+        location = location.split("(").rstrip(")")
+        print location
+
+        posm = Posm(name=name,
+                    ptype=ptype)
+
+        # Add popos to the db session
+        db.session.add(popos)
+
+    # Commit session to db
+    db.session.commit()
+
 
 ##############################################################################
 
