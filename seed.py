@@ -4,7 +4,7 @@
 
 from model import connect_to_db, db, Popos #add Models
 from server import app
-# from datetime import datetime
+from datetime import datetime
 
 
 def load_popos():
@@ -20,48 +20,49 @@ def load_popos():
     for row in open("seed_data/popos.csv"):
         row = row.rstrip()
 
-        objectid, name, address, latitude, longitude, ptype = row.split(",")[:6] 
+        name, address, latitude, longitude, subj, ptype = row.split(",")[1:7] 
 
         popos = Popos(name=name,
                       address=address,
-                      latitude=latitude,
-                      longitude=longitude,
+                      latitude=float(latitude),
+                      longitude=float(longitude),
                       ptype=ptype)
 
         # Add popos to the db session
         db.session.add(popos)
-
+        
     # Commit session to db
     db.session.commit()
+    print "Committed to DB"
 
 
-def load_posm():
-    """Load Park & Open Space Map from posm.csv into database."""
+# def load_posm():
+#     """Load Park & Open Space Map from posm.csv into database."""
 
-    print "Park & Open Spaces"
+#     print "Park & Open Spaces"
 
-    # Delete all rows in table, so if we need to run this a second time,
-    # we won't be trying to add duplicate entries
-    Posm.query.delete()
+#     # Delete all rows in table, so if we need to run this a second time,
+#     # we won't be trying to add duplicate entries
+#     Posm.query.delete()
 
-    # Read posm.csv file and parse data
-    for row in open("seed_data/posm.csv"):
-        row = row.rstrip()
+#     # Read posm.csv file and parse data
+#     for row in open("seed_data/posm.csv"):
+#         row = row.rstrip()
 
-        name, ptype = row.split(",")[:2]
-        location = row.split(",")[-1]
+#         name, ptype = row.split(",")[:2]
+#         location = row.split(",")[-1]
 
-        location = location.split("(").rstrip(")")
-        print location
+#         location = location.split("(").rstrip(")")
+#         print location
 
-        posm = Posm(name=name,
-                    ptype=ptype)
+#         posm = Posm(name=name,
+#                     ptype=ptype)
 
-        # Add popos to the db session
-        db.session.add(popos)
+#         # Add popos to the db session
+#         db.session.add(popos)
 
-    # Commit session to db
-    db.session.commit()
+#     # Commit session to db
+#     db.session.commit()
 
 
 ##############################################################################
