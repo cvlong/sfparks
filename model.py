@@ -1,7 +1,9 @@
 """Models and database functions for SFparks project."""
 
 from flask_sqlalchemy import SQLAlchemy
+from geojson import Point
 from datetime import datetime
+
 
 # Connect to PostgreSQL database through the Flask-SQLAlchemy helper library. Use
 # 'session' object to commit, etc.
@@ -15,7 +17,7 @@ db = SQLAlchemy()
 # TODO: Determine relationships b/w comments & users/parks. Set backref using foreign keys.
 
 class Popos(db.Model):
-    """Public Open Spaces on SFparks website."""
+    """Privately-Owned Public Open Space on SFparks website."""
 
     __tablename__ = "popos"
 
@@ -26,32 +28,63 @@ class Popos(db.Model):
     longitude = db.Column(db.Numeric(9, 6), nullable=False)
     ptype = db.Column(db.String(100))
 
+
+    def create_geojson_object(self):
+        """Creates GeoJSON object for popos data."""
+        geojson_obj = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [self.longitude, self.latitude]
+            },
+            "properties": {
+                "name": self.name,
+                "address": self.address,
+                }
+        }
+
+        return geojson_obj
+
+
     def __repr__(self):
         """Define how model displays."""
 
-        return "<POPOS popos_id=%s address=%s>" % (self.popos_id, self.address)
+        return "<POPOS popos_id: {}, address: {}>".format(self.popos_id, self.address)
 
 
-# class Parks(db.Model):
+# class Park(db.Model):
 #     """Aggregates IDs from POPOS, parks tables."""
+
+    # __tablename__ = "parks"
 
     # TODO: SETUP ASSOCIATION TABLE
 
+
 class User(db.Model):
-    """User on SFparks website."""
+    """User of SFparks website."""
 
     __tablename__ = "users"
 
     user_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     email = db.Column(db.String(50), nullable=False)
     password = db.Column(db.String(20), nullable=False)
+    # TODO: ADD USER'S HOME, OR SAVED STARTING LOCATION
 
     def __repr__(self):
-        """Show user information."""
+        """Define how model displays."""
 
-        return "<User user_id: {} email: {}>".format(self.user_id, self.email)
+        return "<User user_id: {}, email: {}>".format(self.user_id, self.email)
 
-    # TODO: ADD USER'S HOME, OR SAVED STARTING LOCATION
+    
+# class Favorite(db.Model):
+#     """Parks indicated as favorite by specific user."""
+
+#     __tablename__ = "favorites"
+
+#     fav_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+#     park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
+#     #     # TODO: LINK TO PARKS ASSOCIATION TABLE
+#     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
 
 
 # class Comment(db.Model):
@@ -68,7 +101,7 @@ class User(db.Model):
 #     comment = db.Column(db.String(200), nullable=False)
 
 #     def __repr__(self):
-#         """Show comment information."""
+#         """Define how model displays."""
 
 #         return "<Comment comment_id: {} by user user_id: {} for park park_id: {}>".format
 #         (self.comment_id, self.user_id, park_id)

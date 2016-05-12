@@ -3,6 +3,6 @@ env/
 secrets.sh
 .DS_Store
 project_notes.txt
-test.py
-api-pp.py
-requests.py
+seed_requests.py
+/working_files
+testing.py
