@@ -8,12 +8,12 @@ from datetime import datetime
 
 
 def load_popos():
-    """Load POPOS from popos.csv into database."""
+    """Load Privately-Owned Public Open Space (POPOS) data from popos.csv into database."""
 
     print "POPOS"
 
-    # Delete all rows in table, so if we need to run this a second time,
-    # we won't be trying to add duplicate entries
+    # Delete all rows in table, so we're not creating duplicate entries
+    # if we need to run this a second time
     Popos.query.delete()
 
     # Read popos.csv file and parse data
