@@ -9,6 +9,24 @@
 <body>
   <h1></h1>
   
+  {% if "user_id" in session %}
+    <form action="/logout" method='POST'>
+        <input type='submit' value='Sign out'>
+    </form>
+  {% else %}
+    <form action="/login" method='POST'>
+        <input type='submit' value='Sign in'>
+    </form>
+  {% endif %}
+
+
+
+  <br>
+  {% for message in get_flashed_messages() %}
+    {{ message }}
+  {% endfor %}
+  <hr>
+
   {% block content %}BODY CONTENT{% endblock %}
 
   <footer></footer>
