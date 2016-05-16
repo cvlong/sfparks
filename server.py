@@ -1,8 +1,8 @@
 """SFparks."""
 
-from jinja2 import StrictUndefined
-from flask import Flask, render_template, redirect, request, flash, session
+from flask import Flask, render_template, redirect, request, flash, session, jsonify
 from flask_debugtoolbar import DebugToolbarExtension
+from jinja2 import StrictUndefined
 from model import db, connect_to_db, User, Popos
 from mappingfunc import get_routing_directions, find_distance
 
@@ -94,32 +94,15 @@ def login():
 
 @app.route('/process-login', methods=['POST'])
 def process_login():
-    """Log in existing users; adds new users to database along with password."""
+    """Log in existing users and redirect to homepage."""
 
-    # Pull data from form
-    email = request.form.get("email")
-    password = request.form.get("password")
+    email = request.form.get('email')
+    password = request.form.get('password')
 
     # select the user from the database who has the given email (if any)
-    user = User.query.filter(User.email=email).first()
+    user = User.query.filter_by(User.email=email).first()
 
-    if user == None:
-        flash("That email address does not appear in our records. Creating new record for {}.".format(email))
-
-        # instantiate a user object with the information provided
-        user = User(email=email, password=password)
-        
-        # add user to session and commit to database
-        db.session.add(user)
-        db.session.commit()
-
-        # add user to the session; redirect to homepage
-        session['user'] = user.user_id
-        
-        flash("You're logged in.")
-        return redirect('/')
-    
-    else:
+    if user:
         # check to see if password is correct
         if password == user.password:
             session['user'] = user.user_id
@@ -130,12 +113,40 @@ def process_login():
         else:  # if password does not match database
             # flash message, stay on page
             
-            flash('Your password is incorrect. Please enter your information again.')
+            flash('Your password is incorrect. Please enter your information again or register as a new user.')
             return redirect('/login')
 
 
-@app.route('/logout', methods=['POST'])
-def process_logout():
+@app.route('/register')
+def register():
+    """Show registration form."""
+
+    return render_template('register.html')
+
+
+@app.route('/process-registration', methods=['POST'])
+def process_registration():
+    """Add new user to database and log them in."""
+
+    email = request.form.get('email')
+    password = request.form.get('password')
+
+    # instantiate a user object with the information provided
+    new_user = User(email=email, password=password)
+    
+    # add user to session and commit to database
+    db.session.add(new_user)
+    db.session.commit()
+
+    # add user to the session; redirect to homepage
+    session['user'] = new_user.user_id
+    
+    flash("You're logged in.")
+    return redirect('/')
+
+
+@app.route('/logout')
+def logout():
     """Log user out."""
 
     # remove user id from session

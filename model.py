@@ -122,7 +122,7 @@ class User(db.Model):
 def connect_to_db(app):
     """Connect database to Flask app."""
 
-    # Configure PostgreSQL database
+    # Configure to use PostgreSQL database
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///sfparks'
     app.config['SQLALCHEMY_ECHO']=True
     db.app = app
