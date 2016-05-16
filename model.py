@@ -1,7 +1,7 @@
 """Models and database functions for SFparks project."""
 
 from flask_sqlalchemy import SQLAlchemy
-from geojson import Point
+# from geojson import Point
 from datetime import datetime
 
 
@@ -24,13 +24,14 @@ class Popos(db.Model):
     popos_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     address = db.Column(db.String(150), nullable=False)
-    latitude = db.Column(db.Numeric(8, 6), nullable=False)
-    longitude = db.Column(db.Numeric(9, 6), nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
     ptype = db.Column(db.String(100))
 
 
     def create_geojson_object(self):
         """Creates GeoJSON object for popos data."""
+        
         geojson_obj = {
             "type": "Feature",
             "geometry": {
@@ -44,6 +45,13 @@ class Popos(db.Model):
         }
 
         return geojson_obj
+
+
+    @classmethod
+    def get_park_type(cls, ptype):
+        """Get all parks matching a certain park type."""
+
+        return cls.query.filter_by(ptype=ptype).all()
 
 
     def __repr__(self):
@@ -68,7 +76,7 @@ class User(db.Model):
     user_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     email = db.Column(db.String(50), nullable=False)
     password = db.Column(db.String(20), nullable=False)
-    # TODO: ADD USER'S HOME, OR SAVED STARTING LOCATION
+    # TODO: add user's home, or saved starting location
 
     def __repr__(self):
         """Define how model displays."""
@@ -114,9 +122,9 @@ class User(db.Model):
 def connect_to_db(app):
     """Connect database to Flask app."""
 
-    # Configure to use PstgreSQL database
+    # Configure PostgreSQL database
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///sfparks'
-    # app.config['SQLALCHEMY_ECHO']=True
+    app.config['SQLALCHEMY_ECHO']=True
     db.app = app
     db.init_app(app)
 
