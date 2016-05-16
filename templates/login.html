@@ -6,12 +6,18 @@
 <form action='/process-login' method='POST'>
     <div>
         <label for='field-email'>Email address: </label>
-            <input type='text' name='email' id='field-email'>
+            <input type='text' name='email' id='field-email' required>
         <br><br>
         <label for='field-password'>Password: </label>
-            <input type='password' name='password' id='field-password'>
+            <input type='password' name='password' id='field-password' required>
         <br><br>
             <input type='submit' value='Sign in'>
+    </div>
+</form>
+
+<form action='/register' method='POST'>
+    <div>
+        <input type='submit' value='Register'>
     </div>
 </form>
 
