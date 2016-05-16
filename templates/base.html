@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>{% block title %}TITLE{% endblock %}</title>
+  
+  <title>{% block title %} {% endblock %}</title>
+  
   <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
-  <script src="https://code.jquery.com/jquery.js"></script>
+  
+  {% block head %} {% endblock %}
+
 </head>
 
 <body>
-  <h1></h1>
   
-  {% if "user_id" in session %}
+  {% if "user" in session %}
     <form action="/logout" method='POST'>
         <input type='submit' value='Sign out'>
     </form>
@@ -19,17 +22,22 @@
     </form>
   {% endif %}
 
-
-
   <br>
-  {% for message in get_flashed_messages() %}
-    {{ message }}
-  {% endfor %}
+  <ul>
+    {% for message in get_flashed_messages() %}
+      <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
   <hr>
 
-  {% block content %}BODY CONTENT{% endblock %}
+  {% block body %} {% endblock %}
+
 
   <footer></footer>
+<!--   {% block footer %}{% endblock %}
+ -->
+
+  <!-- <script src="https://code.jquery.com/jquery.js"></script> -->
 
 </body>
 </html>
