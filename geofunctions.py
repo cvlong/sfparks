@@ -1,8 +1,8 @@
 import os
 from mapbox import Geocoder, Distance
+from geopy.distance import vincenty
 from pprint import pprint
 from model import db, connect_to_db, Popos, Posm
-from geopy.distance import vincenty
 
 
 MB_ACCESS_TOKEN = os.environ['MAPBOX_ACCESS_TOKEN']
@@ -31,7 +31,7 @@ def geocode_location(location):
     origin_coord = (origin_lat, origin_lng)
     return origin_coord
     # (37.792458 -122.395709)
-    # need this tuple format for vincenty calculation in func. find_distance()
+    # need this tuple format for vincenty calculation in find_distance()
 
 # geocode_location("55 Main Street")
 
@@ -39,7 +39,7 @@ def geocode_location(location):
 def reverse_coord(coord):
     """Reverse lat/lng to lng/lat in tuple."""
 
-    reversed_coord = (coord_input[1], coord_input[0])
+    reversed_coord = (coord[1], coord[0])
     return reversed_coord
     # (-122.395709, 37.792458)
 
@@ -52,7 +52,7 @@ def find_distance(origin, destination):
     return vincenty(origin, destination).miles
 
 
-def origin_geojson_object(origin_lng, origin_lat):
+def geojson_origin_object(origin_lng, origin_lat):
     """Create GeoJSON object for origin location."""
     
     geojson_obj = {
@@ -63,11 +63,10 @@ def origin_geojson_object(origin_lng, origin_lat):
         },
         "properties": {
             "name": None,
-            "address": None,
             }
     }
 
-    return origin_geojson_obj
+    return geojson_origin_obj
 
 
 # The input waypoints to the distance method are features,
@@ -94,13 +93,19 @@ destination = {
 # def get_routing_time(origin, destinations, routing):
     # First argument = list w/ origin geojson object + geojson objects of all parks
 
-def get_routing_time(routing_list, routing_profile):
-    """Find routing time from a list of features and the desired routing profile."""
+def get_routing_times(routing_list, routing_profile):
+    """Find routing time from origin to a list of features.
 
-    # response = service.time([origin, destinations], routing)
-    response = service.time(routing_list, routing)
+    The Mapbox Distance API optimizes travel between several waypoints,
+    producing a "Distance Matrix" showing travel times between all waypoints.
+    The routing_list is a list of GeoJSON point features for the origin plus
+    each park destination.
+    """
+
+    # response = service.distances([origin, destinations], routing)
+    response = service.distances(routing_list, routing_profile)
     
-    # print response.status_code
+    print response.status_code
     # 200
     
     # print response.headers['Content-Type']
@@ -110,5 +115,3 @@ def get_routing_time(routing_list, routing_profile):
     # [[0, ..., ...], [..., 0, ...], [..., ..., 0]]
 
     return response.json()['durations']
-
-# get_routing_time(origin, [destinations], 'walking')

@@ -40,6 +40,7 @@ class Popos(db.Model):
             "properties": {
                 "name": self.name,
                 "address": self.address,
+                "routing_time": None,
                 }
         }
 
@@ -56,7 +57,7 @@ class Popos(db.Model):
     def __repr__(self):
         """Define how model displays."""
 
-        return "<POPOS popos_id: {}, address: {}>".format(self.popos_id, self.address)
+        return "<POPOS park_id: {}, address: {}>".format(self.park_id, self.address)
 
 
 class Posm(db.Model):
@@ -84,6 +85,7 @@ class Posm(db.Model):
             },
             "properties": {
                 "name": self.name,
+                "routing_time": None,
                 }
         }
 
@@ -100,7 +102,7 @@ class Posm(db.Model):
     def __repr__(self):
         """Define how model displays."""
 
-        return "<POSM posm_id: {}, name: {}>".format(self.posm_id, self.name)
+        return "<POSM park_id: {}, name: {}>".format(self.park_id, self.name)
 
 
 
