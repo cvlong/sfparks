@@ -20,7 +20,7 @@ class Popos(db.Model):
 
     __tablename__ = "popos"
 
-    popos_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    park_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     address = db.Column(db.String(150), nullable=False)
     latitude = db.Column(db.Float, nullable=False)
@@ -64,7 +64,7 @@ class Posm(db.Model):
 
     __tablename__ = "posm"
 
-    posm_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    park_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
