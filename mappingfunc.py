@@ -5,7 +5,6 @@ from model import db, connect_to_db, Popos
 from geopy.distance import vincenty
 
 
-
 MB_ACCESS_TOKEN = os.environ['MAPBOX_ACCESS_TOKEN']
 geocoder = Geocoder(access_token=MB_ACCESS_TOKEN)
 service = Distance(access_token=MB_ACCESS_TOKEN)
@@ -14,32 +13,36 @@ service = Distance(access_token=MB_ACCESS_TOKEN)
 # this file to set required environmental variables
 
 def geocode_location(geocode_input):
-    """Forward geocoding returns long/lat for location."""
+    """Forward geocoding returns lng/lat for address."""
 
-    # Forward geocoding with proximity so results are biased toward a given long/lat
+    # Forward geocoding with proximity so results are biased toward a given lng/lat
     response = geocoder.forward(geocode_input, lon=-122.431, lat=37.773)
     
     # print response.status_code
     # 200
 
-    # print response.json()
-
     first = response.geojson()['features'][0]
-    print first['place_name']
-    # '55 Main St, San Francisco, California 94105, United States'
-    print first['geometry']['coordinates']
-    # [-122.395709, 37.792458]
-    origin_lon = first['geometry']['coordinates'][0]
+    # print first['place_name'] # '55 Main St, San Francisco, California 94105, United States'
+    # print first['geometry']['coordinates'] # [-122.395709, 37.792458]
+    origin_lng = first['geometry']['coordinates'][0]
     origin_lat = first['geometry']['coordinates'][1]
-    
-    print origin_lon, origin_lat
-    # -122.395709, 37.792458
 
-    return (origin_lat, origin_lon)
+    origin_coord = (origin_lat, origin_lng)
+    return origin_coord
     # (37.792458 -122.395709)
     # need this tuple format for vincenty calculation in find_distance()
 
 geocode_location("55 Main Street")
+
+
+def reverse_coord(coord_input):
+    """Reverse lat/lng to lng/lat in tuple."""
+
+    reversed_coord = (coord_input[1], coord_input[0])
+    return reversed_coord
+    # (-122.395709, 37.792458)
+
+# reverse_coord((37.792458 -122.395709)
 
 
 def find_distance(origin, destination):
@@ -48,6 +51,24 @@ def find_distance(origin, destination):
     return vincenty(origin, destination).miles
 
 # find_distance()
+
+
+def origin_geojson_object(origin_lng, origin_lat):
+    """Creates GeoJSON object for popos data."""
+    
+    geojson_obj = {
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [origin_lng, origin_lat]
+        },
+        "properties": {
+            "name": None,
+            "address": None,
+            }
+    }
+
+    return origin_geojson_obj
 
 
 # The input waypoints to the distance method are features,
@@ -71,20 +92,27 @@ destination = {
 # Filter using turf before sending reuest
 # First argument: fist of origin + all parks
 
-def get_routing_directions(origin, destinations, routing):
-    """Find directions with a list of features and the desired profile."""
+# def get_routing_distance(origin, destinations, routing):
 
-    response = service.distances([origin, destination], routing)
+def get_routing_distance(routing_list, routing_profile):
+    """Find distance with a list of features and the desired profile."""
+
+    # response = service.distances([origin, destinations], routing)
+    response = service.distances(routing_list, routing)
     
-    print response.status_code
+    # print response.status_code
     # 200
     
-    print response.headers['Content-Type']
+    # print response.headers['Content-Type']
     # 'application/json; charset=utf-8'
 
     pprint(response.json()['durations'])
     # [[0, ..., ...], [..., 0, ...], [..., ..., 0]]
 
-# get_routing_directions(origin, [destinations], 'walking')
+    return response.json()['durations']
+
+# get_routing_distance(origin, [destinations], 'walking')
+
+
 
 
