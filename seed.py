@@ -1,16 +1,17 @@
-"""Utility file to seed SFparks database from parks & POPOS data in seed_data/"""
+"""Utility file to seed SFparks database from external API requests and seed_data/"""
 
 # from sqlalchemy import func
 
-from model import connect_to_db, db, Popos #add Models
+from model import connect_to_db, db, Popos, Posm #add Models
 from server import app
+import requests
 from datetime import datetime
 
 
 def load_popos():
     """Load Privately-Owned Public Open Space (POPOS) data from popos.csv into database."""
 
-    print "POPOS"
+    print "Privately-Owned Public Open Space"
 
     # Delete all rows in table, so we're not creating duplicate entries
     # if we need to run this a second time
@@ -28,7 +29,7 @@ def load_popos():
                       longitude=float(longitude),
                       ptype=ptype)
 
-        # Add popos to the db session
+        # Add popos data to the db session
         db.session.add(popos)
         
     # Commit session to db
@@ -36,33 +37,43 @@ def load_popos():
     print "Committed to DB"
 
 
-# def load_posm():
-#     """Load Park & Open Space Map from posm.csv into database."""
+def load_posm():
+    """Load Park & Open Space Map data from JSON into database."""
 
-#     print "Park & Open Spaces"
+    print "Park & Open Spaces"
 
-#     # Delete all rows in table, so if we need to run this a second time,
-#     # we won't be trying to add duplicate entries
-#     Posm.query.delete()
+    # Delete all rows in table, so we're not creating duplicate entries
+    # if we need to run this a second time
+    Posm.query.delete()
 
-#     # Read posm.csv file and parse data
-#     for row in open("seed_data/posm.csv"):
-#         row = row.rstrip()
+    # Call API and parse data
+    r = requests.get('https://data.sfgov.org/resource/94uf-amnx.json')
+    parks = r.json()
 
-#         name, ptype = row.split(",")[:2]
-#         location = row.split(",")[-1]
+    for item in parks:
+        name = item.get('parkname').title()
+        ptype = item.get('parktype')
+        acreage = item.get('acreage')
+        zipcode = item.get('zipcode')
+        try:
+            coordinates = item.get('location_1').get('coordinates') # [-122.38450221, 37.73876792]
+        except AttributeError:
+           continue
 
-#         location = location.split("(").rstrip(")")
-#         print location
+        posm = Posm(name=name,
+                    latitude=coordinates[1],
+                    longitude=coordinates[0],
+                    ptype=ptype,
+                    acreage=acreage,
+                    zipcode=zipcode)
 
-#         posm = Posm(name=name,
-#                     ptype=ptype)
+        # Add posm data to the db session
+        db.session.add(posm)
 
-#         # Add popos to the db session
-#         db.session.add(popos)
+    # Commit session to db
+    db.session.commit()
+    print "Committed to DB"
 
-#     # Commit session to db
-#     db.session.commit()
 
 
 ##############################################################################
@@ -73,4 +84,5 @@ if __name__ == "__main__":
 
     # Import different types of data
     load_popos()
+    load_posm()
     
