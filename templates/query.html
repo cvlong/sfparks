@@ -1,0 +1,25 @@
+
+{% extends 'base.html' %}
+
+{% block title %}SFparks{% endblock %}
+
+{% block body %}
+
+    <h2>SFparks</h2>
+
+
+    <div>origin: {{ origin }}, routing time: {{ routing_time }}</div>
+
+    <br><br>
+
+    <div>close parks: {{ close_parks }}</div>
+
+    <br><br>
+
+    <div>geojson list: {{ geojson_list }}</div>
+    <br><br>
+
+    <div>routing distance: {{ routing_distance }}</div>
+
+{% endblock %}
+
