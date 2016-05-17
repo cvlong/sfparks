@@ -3,8 +3,9 @@
 from flask import Flask, render_template, redirect, request, flash, session, jsonify
 from flask_debugtoolbar import DebugToolbarExtension
 from jinja2 import StrictUndefined
-from model import db, connect_to_db, User, Popos
-from mappingfunc import geocode_location, reverse_coord, find_distance, get_routing_distance, origin_geojson_object
+from model import db, connect_to_db, User, Popos, Posm
+from geofunctions import geocode_location, reverse_coord, find_distance, get_routing_time, origin_geojson_object
+from mappingfunctions import find_close_parks
 from geojson import Feature, Point
 
 
@@ -44,49 +45,42 @@ def query_parks():
     parks = Popos.query.all()
         # [<POPOS popos_id: 1, address: 555 Mission St>, <POPOS popos_id: 2, address: 400 Howard St>, ETC
 
-    # Instantiate an empty dictionary to record parks that correspond to the following distance radius heuristic
-    close_parks = {} # KEY popos_id : VALUE popos object
+    #NEW FUNCTION ---------> def find_close_parks():
 
-    for park in parks:
-        dist = find_distance(geocoded_origin, (park.latitude, park.longitude))
-        if dist < .5: # later bring in dictionary that corresponds to bounding box heuristic
-            close_parks[park.popos_id] = park
+    print find_close_parks(geocoded_origin, parks)
 
-    print close_parks
-        # {32: <POPOS popos_id: 32, address: 600 California St>, 33: <POPOS popos_id: 33, address: 845 Market St>, ETC
+    # # Instantiate an empty list to hold GeoJSON objects for parks in close_parks
+    # geojson_list = []
 
-    # Instantiate an empty list to hold GeoJSON objects for parks in close_parks
-    geojson_list = []
+    # # Unpack close_parks dict to append GeoJSON objects to geojson_list
+    # for park_id, park in close_parks.items():
+    #     geojson_list.append(park.create_geojson_object())
 
-    # Unpack close_parks dict to append GeoJSON objects to geojson_list
-    for park_id, park in close_parks.items():
-        geojson_list.append(park.create_geojson_object())
-
-    print geojson_list
-        # [{'geometry': {'type': 'Point', 'coordinates': [-122.40487, 37.79277]}, 'type': 'Feature', 'properties': {'name': u'600 California St', 'address': u'600 California St'}}, {'geometry': {'type': 'Point', 'coordinates': [-122.40652, 37.78473]}, 'type': 'Feature', 'properties': {'name': u'Westfield Sky Terrace (Wesfield Center Mall)', 'address': u'845 Market St'}},
+    # print geojson_list
+    #     # [{'geometry': {'type': 'Point', 'coordinates': [-122.40487, 37.79277]}, 'type': 'Feature', 'properties': {'name': u'600 California St', 'address': u'600 California St'}}, {'geometry': {'type': 'Point', 'coordinates': [-122.40652, 37.78473]}, 'type': 'Feature', 'properties': {'name': u'Westfield Sky Terrace (Wesfield Center Mall)', 'address': u'845 Market St'}},
 
 
-    # Convert geocoded_origin tuple to GeoJSON object; need to switch lat/lng to lng/lat tuple
-    origin_geojson = Feature(geometry=Point(reverse_coord(geocoded_origin)))
-        # Point(reverse_coord(geocoded_origin)) --> Feature(geometry=origin_geojson)
+    # # Convert geocoded_origin tuple to GeoJSON object; need to switch lat/lng to lng/lat tuple
+    # origin_geojson = Feature(geometry=Point(reverse_coord(geocoded_origin)))
+    #     # Point(reverse_coord(geocoded_origin)) --> Feature(geometry=origin_geojson)
 
-    routing_params = [origin_geojson] + geojson_list
+    # routing_params = [origin_geojson] + geojson_list
     
 
-    # get_routing_distance(origin, destinations, 'walking')
-    routing_time = get_routing_distance(routing_params, 'walking')
+    # # get_routing_time(origin, destinations, 'walking')
+    # routing_time = get_routing_time(routing_params, 'walking')
     
-    print len(geojson_list)
-    print len(routing_distance)
+    # print len(geojson_list)
+    # print len(routing_time)
 
 
 
-    return render_template('query.html',
-                            origin=origin,
-                            routing_time=routing_time,
-                            close_parks=close_parks,
-                            geojson_list=geojson_list,
-                            routing_distance=routing_distance)
+    # return render_template('query.html',
+    #                         origin=origin,
+    #                         routing_time=routing_time,
+    #                         close_parks=close_parks,
+    #                         geojson_list=geojson_list,
+    #                         routing_time=routing_time)
 
 
 """

@@ -13,11 +13,11 @@ service = Distance(access_token=MB_ACCESS_TOKEN)
 # this file to set required environmental variables
 
 
-def geocode_location(origin_address):
+def geocode_location(location):
     """Forward geocoding returns lng/lat for address."""
 
     # Forward geocoding with proximity so results are biased toward a given lng/lat
-    response = geocoder.forward(geocode_input, lon=-122.431, lat=37.773)
+    response = geocoder.forward(location, lon=-122.431, lat=37.773)
     
     # print response.status_code
     # 200
@@ -36,7 +36,7 @@ def geocode_location(origin_address):
 # geocode_location("55 Main Street")
 
 
-def reverse_coord(coord_input):
+def reverse_coord(coord):
     """Reverse lat/lng to lng/lat in tuple."""
 
     reversed_coord = (coord_input[1], coord_input[0])
@@ -51,11 +51,9 @@ def find_distance(origin, destination):
 
     return vincenty(origin, destination).miles
 
-# find_distance()
-
 
 def origin_geojson_object(origin_lng, origin_lat):
-    """Creates GeoJSON object for origin location."""
+    """Create GeoJSON object for origin location."""
     
     geojson_obj = {
         "type": "Feature",
@@ -93,14 +91,14 @@ destination = {
 # Filter using turf before sending reuest
 
 
-# def get_routing_distance(origin, destinations, routing):
+# def get_routing_time(origin, destinations, routing):
     # First argument = list w/ origin geojson object + geojson objects of all parks
 
-def get_routing_distance(routing_list, routing_profile):
-    """Find distance with a list of features and the desired profile."""
+def get_routing_time(routing_list, routing_profile):
+    """Find routing time from a list of features and the desired routing profile."""
 
-    # response = service.distances([origin, destinations], routing)
-    response = service.distances(routing_list, routing)
+    # response = service.time([origin, destinations], routing)
+    response = service.time(routing_list, routing)
     
     # print response.status_code
     # 200
@@ -113,4 +111,4 @@ def get_routing_distance(routing_list, routing_profile):
 
     return response.json()['durations']
 
-# get_routing_distance(origin, [destinations], 'walking')
+# get_routing_time(origin, [destinations], 'walking')
