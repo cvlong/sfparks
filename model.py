@@ -1,7 +1,6 @@
 """Models and database functions for SFparks project."""
 
 from flask_sqlalchemy import SQLAlchemy
-# from geojson import Point
 from datetime import datetime
 
 
@@ -58,6 +57,51 @@ class Popos(db.Model):
         """Define how model displays."""
 
         return "<POPOS popos_id: {}, address: {}>".format(self.popos_id, self.address)
+
+
+class Posm(db.Model):
+    """Park & Open Space Map data on SFparks website."""
+
+    __tablename__ = "posm"
+
+    posm_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    ptype = db.Column(db.String(100))
+    acreage = db.Column(db.Float)
+    zipcode = db.Column(db.Integer)
+
+
+    def create_geojson_object(self):
+        """Creates GeoJSON object for posm data."""
+        
+        geojson_obj = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [self.longitude, self.latitude]
+            },
+            "properties": {
+                "name": self.name,
+                }
+        }
+
+        return geojson_obj
+
+
+    # @classmethod
+    # def get_park_type(cls, ptype):
+    #     """Get all parks matching a certain park type."""
+
+    #     return cls.query.filter_by(ptype=ptype).all()
+
+
+    def __repr__(self):
+        """Define how model displays."""
+
+        return "<POSM posm_id: {}, name: {}>".format(self.posm_id, self.name)
+
 
 
 # class Park(db.Model):

@@ -4,7 +4,8 @@ from flask import Flask, render_template, redirect, request, flash, session, jso
 from flask_debugtoolbar import DebugToolbarExtension
 from jinja2 import StrictUndefined
 from model import db, connect_to_db, User, Popos
-from mappingfunc import get_routing_directions, find_distance
+from mappingfunc import geocode_location, reverse_coord, find_distance, get_routing_distance, origin_geojson_object
+from geojson import Feature, Point
 
 
 app = Flask(__name__)
@@ -27,34 +28,66 @@ def index():
                             parks=parks)
 
 
-
-@app.route('/query', methods="GET")
+@app.route('/query', methods=['GET'])
 def query_parks():
-    """"""
+    """Return results from users' query based on origin location and routing time."""
     
-    origin = request.args.get("origin")
+    origin = request.args.get('origin')
+    routing_time = request.args.get('routing_time')
+    routing_profile = 'walking' # hardcoding this for now; eventually incorporate into query params
 
-    # routing_profile = 'walking'
+    # Geocode address input on homepage to lat/lng tuple
+    geocoded_origin = geocode_location(origin)
+        # geocoded_origin = (37.792458, -122.395709)
 
-    geocode_origin = (geocode_location(origin))
-    print geocode_origin
-    # (37.792458 -122.395709)
-
-    # hardcoding origin for testing (lat, lon tuple)
-    origin = (37.792458, -122.395709)
-
+    # Get all park objects in database
     parks = Popos.query.all()
-    close_parks = {}
+        # [<POPOS popos_id: 1, address: 555 Mission St>, <POPOS popos_id: 2, address: 400 Howard St>, ETC
+
+    # Instantiate an empty dictionary to record parks that correspond to the following distance radius heuristic
+    close_parks = {} # KEY popos_id : VALUE popos object
 
     for park in parks:
-        dist = find_distance(origin, (park.latitude, park.longitude))
+        dist = find_distance(geocoded_origin, (park.latitude, park.longitude))
         if dist < .5: # later bring in dictionary that corresponds to bounding box heuristic
-            close_parks[park.popos_id] = park, dist
+            close_parks[park.popos_id] = park
 
     print close_parks
+        # {32: <POPOS popos_id: 32, address: 600 California St>, 33: <POPOS popos_id: 33, address: 845 Market St>, ETC
+
+    # Instantiate an empty list to hold GeoJSON objects for parks in close_parks
+    geojson_list = []
+
+    # Unpack close_parks dict to append GeoJSON objects to geojson_list
+    for park_id, park in close_parks.items():
+        geojson_list.append(park.create_geojson_object())
+
+    print geojson_list
+        # [{'geometry': {'type': 'Point', 'coordinates': [-122.40487, 37.79277]}, 'type': 'Feature', 'properties': {'name': u'600 California St', 'address': u'600 California St'}}, {'geometry': {'type': 'Point', 'coordinates': [-122.40652, 37.78473]}, 'type': 'Feature', 'properties': {'name': u'Westfield Sky Terrace (Wesfield Center Mall)', 'address': u'845 Market St'}},
+
+
+    # Convert geocoded_origin tuple to GeoJSON object; need to switch lat/lng to lng/lat tuple
+    origin_geojson = Feature(geometry=Point(reverse_coord(geocoded_origin)))
+        # Point(reverse_coord(geocoded_origin)) --> Feature(geometry=origin_geojson)
+
+    routing_params = [origin_geojson] + geojson_list
+    
+
+    # get_routing_distance(origin, destinations, 'walking')
+    routing_time = get_routing_distance(routing_params, 'walking')
+    
+    print len(geojson_list)
+    print len(routing_distance)
+
+
 
     return render_template('query.html',
-                            close_parks=close_parks)
+                            origin=origin,
+                            routing_time=routing_time,
+                            close_parks=close_parks,
+                            geojson_list=geojson_list,
+                            routing_distance=routing_distance)
+
 
 """
 #run server in interactive mode
@@ -80,7 +113,7 @@ def query_parks():
     # Query and get the parks
     # Get back LIST of park objects
     # Then loop thourgh that LIST
-    # And add geojson_iobjs to another list, or something else
+    # And add geojson_objs to another list, or something else
 
 
 
@@ -100,7 +133,7 @@ def process_login():
     password = request.form.get('password')
 
     # select the user from the database who has the given email (if any)
-    user = User.query.filter_by(User.email=email).first()
+    user = User.query.filter(User.email==email).first()
 
     if user:
         # check to see if password is correct
@@ -117,7 +150,7 @@ def process_login():
             return redirect('/login')
 
 
-@app.route('/register')
+@app.route('/register', methods=['POST'])
 def register():
     """Show registration form."""
 
@@ -145,7 +178,7 @@ def process_registration():
     return redirect('/')
 
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 def logout():
     """Log user out."""
 
