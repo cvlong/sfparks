@@ -40,6 +40,7 @@ class Popos(db.Model):
             "properties": {
                 "name": self.name,
                 "address": self.address,
+                "marker-symbol": None,
                 "routing_time": None,
                 }
         }
@@ -85,6 +86,7 @@ class Posm(db.Model):
             },
             "properties": {
                 "name": self.name,
+                "marker-symbol": None,
                 "routing_time": None,
                 }
         }

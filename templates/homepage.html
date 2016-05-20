@@ -1,32 +1,46 @@
 {% extends 'base.html' %} 
 
-{% block title %}Title{% endblock %}
+{% block title %}SFparks{% endblock %}
 
 {% block head %} 
-    <meta charset='utf-8' />
-    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.18.0/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.18.0/mapbox-gl.css' rel='stylesheet' />
+<!-- moved to base.html -->
+    <!-- <meta charset='utf-8' /> -->
+    <!-- <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' /> -->
+    <!-- <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.18.0/mapbox-gl.js'></script> -->
+    <!-- <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.18.0/mapbox-gl.css' rel='stylesheet' /> -->
     <!--  TODO: customize style -->
+<!-- ^^ moved to base.html ^^ -->
+
     <style>
         body { margin:0; padding:0; }
         /*#map { position:absolute; top:0; bottom:0; width:100%; }*/
-        
         /*Set map under login/logout & search forms until implementing bootstrap*/
         #map { position:absolute; top:200px; bottom:0; width:100%; }
     </style>
 
 {% endblock %}
 
+
 {% block body %}
- 
-    <div id="location-input">
+<style>
+    .mapboxgl-popup {
+        max-width: 400px;
+        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    }
+
+    .marker-title {
+        font-weight: 700;
+    }
+</style>
+
+
+    <div id="origin-input">
         <form action="/query" method="GET">
             <label for="field-origin">Starting location:</label>
             <input type="text" name="origin" id="field-origin">
 
             <label for="dropdown-maxtime">Time there:</label>
-                <select name="routing_time">
+                <select name="time">
                   <option value="5">5 mins.</option>
                   <option value="10">10 mins.</option>
                   <option value="15">15 mins.</option>
@@ -34,12 +48,13 @@
                   <option value="30">30 mins.</option>
                   <option value="45">45 mins.</option>
                 </select>
-            <!-- routing_profile = 'walking' -->
+            <!-- routing = 'walking' -->
 
         <input type="submit" value="Let's go!">
         </form>
     </div>
 
+    <div></div>
 
     <div id='map'></div>
 
@@ -50,14 +65,96 @@
 <!-- Could move this script to a separate JS file, then link to it here: src="/static, ETC" -->
 
 <script>
-mapboxgl.accessToken = 'pk.eyJ1IjoiY3Zsb25nIiwiYSI6ImNpaTN0djZpbDAxNDN0OW0wMmd0OWN2M3UifQ.XTz91A9EvLazvZOs5DDzaQ';
+// mapboxgl.accessToken = 'pk.eyJ1IjoiY3Zsb25nIiwiYSI6ImNpaTN0djZpbDAxNDN0OW0wMmd0OWN2M3UifQ.XTz91A9EvLazvZOs5DDzaQ';
+    // moved mapbox access token to base.html
 
 var map = new mapboxgl.Map({
     container: 'map', // container id
-    style: 'mapbox://styles/mapbox/streets-v8', //stylesheet location
-    center: [-122.431, 37.773], // starting position
-    zoom: 12.5 // starting zoom
+    style: 'mapbox://styles/mapbox/streets-v9', //stylesheet location 
+    // toggle with? mapbox://styles/mapbox/satellite-streets-v9
+    center: [-122.431, 37.773],
+    zoom: 12.5
 });
+
+
+// $.get('/popos.json', function () {
+// // var markers = $('#markers')
+
+
+var popos_markers = {{ popos | safe }};  // | safe to disable HTML autoescape
+
+var posm_markers = {{ posm | safe }};
+
+
+map.on('load', function () {
+    
+    // Add marker data as a new GeoJSON source
+    map.addSource("popos_markers", {
+        "type": "geojson",
+        "data":  popos_markers
+    });
+
+    popos_markers.features.forEach(function(feature) {
+        feature.properties["marker-symbol"] = "garden"
+    });
+
+    // Add a layer showing the popos markers
+    map.addLayer({
+        "id": "popos_markers",
+        "type": "symbol",
+        "source": "popos_markers",
+        "layout": {
+            "icon-image": "{marker-symbol}-15"
+        }
+    });
+
+    map.addSource("posm_markers", {
+        "type": "geojson",
+        "data":  posm_markers
+    });
+
+    posm_markers.features.forEach(function(feature) {
+        feature.properties["marker-symbol"] = "monument"
+    });
+
+    map.addLayer({
+        "id": "posm_markers",
+        "type": "symbol",
+        "source": "posm_markers",
+        "layout": {
+            "icon-image": "{marker-symbol}-15"
+        }
+    });
+});
+
+// addLayer('POPOS', 'popos_markers');
+// addLayer('POSM', 'posm_markers');
+
+// Create a popup, but don't add it to the map yet.
+// var popup = new mapboxgl.Popup({
+//     closeButton: false,
+//     closeOnClick: false
+// });
+
+// map.on('mousemove', function(e) {
+//     var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers'] });
+//     // Change the cursor style as a UI indicator.
+//     map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+
+//     if (!features.length) {
+//         popup.remove();
+//         return;
+//     }
+
+//     var feature = features[0];
+
+//     // Populate the popup and set its coordinates
+//     // based on the feature found.
+//     popup.setLngLat(feature.geometry.coordinates)
+//         .setHTML(feature.properties.name)
+//         .addTo(map);
+// });
+
 
 
 
