@@ -3,23 +3,68 @@
 
 {% block title %}SFparks{% endblock %}
 
+{% block head %} 
+
+    <style>
+        body { margin:0; padding:0; }
+        /*#map { position:absolute; top:0; bottom:0; width:100%; }*/
+        /*Set map under login/logout & search forms until implementing bootstrap*/
+        #map { position:absolute; top:200px; bottom:0; width:100%; }
+    </style>
+{% endblock %}
+
 {% block body %}
 
     <h2>SFparks</h2>
 
 
-    <div>origin: {{ origin }}, routing time: {{ routing_time }}</div>
-
+<!--     <div>origin: {{ origin }}, routing time: {{ time }}</div>
+    <br>
+    <div>geojson origin: {{ geojson_origin }}</div>
     <br><br>
-
-    <div>close parks: {{ close_parks }}</div>
-
-    <br><br>
-
     <div>geojson destinations: {{ geojson_destinations }}</div>
     <br><br>
+    <div>markers: {{ markers }}</div>
+    <br><br> -->
 
-    <div>routing time: {{ routing_time }}</div>
+    <div id='map'></div>
+
+<script>
+
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v9', 
+    center: [-122.431, 37.773], // programmatically set center to origin lat/lng
+    zoom: 12.5
+});
+
+var markers = {{ markers | safe }};
+
+
+map.on('load', function () {
+    // Add marker data as a new GeoJSON source
+    map.addSource("markers", {
+        "type": "geojson",
+        "data":  markers
+    });
+
+    markers.features.forEach(function(feature) {
+        feature.properties["marker-symbol"] = "garden"
+    });
+
+    // Add a layer showing the popos markers
+    map.addLayer({
+        "id": "markers",
+        "type": "symbol",
+        "source": "markers",
+        "layout": {
+            "icon-image": "{marker-symbol}-15"
+        }
+    });
+});
+
+
+</script>
 
 {% endblock %}
 
