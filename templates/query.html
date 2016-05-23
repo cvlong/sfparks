@@ -5,43 +5,74 @@
 
 {% block head %} 
 
-    <style>
-        body { margin:0; padding:0; }
-        /*#map { position:absolute; top:0; bottom:0; width:100%; }*/
-        /*Set map under login/logout & search forms until implementing bootstrap*/
-        #map { position:absolute; top:200px; bottom:0; width:100%; }
-    </style>
 {% endblock %}
 
 {% block body %}
 
     <h2>SFparks</h2>
 
+<!-- styling for popup info boxes -->
+<style>
+    .mapboxgl-popup {
+        max-width: 400px;
+        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    }
 
-<!--     <div>origin: {{ origin }}, routing time: {{ time }}</div>
+    .marker-title {
+        font-weight: 700;
+    }
+</style>
+
+<!-- 
+    <div>origin: {{ origin }}, routing time: {{ time }}</div>
     <br>
     <div>geojson origin: {{ geojson_origin }}</div>
-    <br><br>
+    <br>
     <div>geojson destinations: {{ geojson_destinations }}</div>
-    <br><br>
+    <br>
     <div>markers: {{ markers }}</div>
-    <br><br> -->
+    <br> -->
 
     <div id='map'></div>
 
 <script>
 
-var map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v9', 
-    center: [-122.431, 37.773], // programmatically set center to origin lat/lng
-    zoom: 12.5
-});
-
+var origin = {{ geojson_origin | safe }};
 var markers = {{ markers | safe }};
 
 
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v9', 
+    center: [origin.geometry.coordinates[0], origin.geometry.coordinates[1]],
+    // programmatically set center to origin lat/lng
+    zoom: 12.5,
+});
+
+// Disable map rotation using right click + drag
+map.dragRotate.disable();
+
+// Disable map rotation using touch rotation gesture
+map.touchZoomRotate.disableRotation();
+
+
 map.on('load', function () {
+    map.addSource('single-point', {
+        "type": "geojson",
+        "data": origin
+    });
+
+    map.addLayer({
+        "id": "point",
+        "source": "single-point",
+        "type": "circle",
+        "paint": {
+            "circle-radius": 10,
+            "circle-color": "#007cbf"
+        }
+    });
+
+
     // Add marker data as a new GeoJSON source
     map.addSource("markers", {
         "type": "geojson",
@@ -63,6 +94,71 @@ map.on('load', function () {
     });
 });
 
+
+// Fit map to marker boundary
+var bounds = new mapboxgl.LngLatBounds();
+
+markers.features.forEach(function(feature) {
+    bounds.extend(feature.geometry.coordinates);
+});
+
+map.fitBounds(bounds, {padding: '50'});
+// end fit to bounds
+
+
+// Add popup info boxes on hover:
+// Create a popup, but don't add it to the map yet.
+var popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false
+});
+
+map.on('mousemove', function(e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['markers'] });
+    
+    // Change the cursor style as a UI indicator.
+    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+
+    if (!features.length) {
+        popup.remove();
+        return;
+    }
+
+    var feature = features[0];
+
+    // Populate the popup and set its coordinates
+    // based on the feature found.
+    popup.setLngLat(feature.geometry.coordinates)
+        .setHTML(feature.properties.name)
+        .addTo(map);
+});
+// end popup boxes
+
+// Indicate that the symbols are clickable by changing the cursor style to 'pointer'.
+map.on('mousemove', function (e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers', 'posm_markers'] });
+    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+});
+
+
+// TODO: Add favorite buttons
+$(function () {
+
+    function addToFavorites (evt) {
+        var id = this.id;
+        $.post('/add-to-favorites', {'id': id}, addToFavoritesSuccess);
+    }
+
+    function addToFavoritesSuccess(result) {
+        console.log(result.status)
+        var id = result.id
+        $.('#' + id).css('color', 'red');
+    }
+
+    $('.favorite-btn').on('click', addToFavorites);
+
+});
+    
 
 </script>
 
