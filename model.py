@@ -132,37 +132,20 @@ class User(db.Model):
         return "<User user_id: {}, email: {}>".format(self.user_id, self.email)
 
     
-# class Favorite(db.Model):
-#     """Parks indicated as favorite by specific user."""
+class Favorite(db.Model):
+    """Parks indicated as favorite by specific user."""
 
-#     __tablename__ = "favorites"
+    __tablename__ = "favorites"
 
-#     fav_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-#     park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
-#     #     # TODO: LINK TO PARKS ASSOCIATION TABLE
-#     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    fav_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
+        # TODO: LINK TO PARKS ASSOCIATION TABLE
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    logged_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
+    # user = db.relationship('User', backref=db.backref'favorites')
 
-# class Comment(db.Model):
-#     """Comment from user on specific park."""
-
-#     __tablename__ = "comments"
-
-#     comment_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-#     park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
-#     # TODO: LINK TO PARKS ASSOCIATION TABLE
-
-#     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
-#     logged_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-#     comment = db.Column(db.String(200), nullable=False)
-
-#     def __repr__(self):
-#         """Define how model displays."""
-
-#         return "<Comment comment_id: {} by user user_id: {} for park park_id: {}>".format
-#         (self.comment_id, self.user_id, park_id)
-
-
+    # park = db.relationship('Park', backref=db.backref'favorites')
 
 
 ##############################################################################
