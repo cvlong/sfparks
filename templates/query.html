@@ -11,18 +11,6 @@
 
     <h2>SFparks</h2>
 
-<!-- styling for popup info boxes -->
-<style>
-    .mapboxgl-popup {
-        max-width: 400px;
-        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
-    }
-
-    .marker-title {
-        font-weight: 700;
-    }
-</style>
-
 <!-- 
     <div>origin: {{ origin }}, routing time: {{ time }}</div>
     <br>
@@ -40,6 +28,7 @@
 var origin = {{ geojson_origin | safe }};
 var markers = {{ markers | safe }};
 
+// ORIGIN = ORIGIN VALUE from JSON
 
 var map = new mapboxgl.Map({
     container: 'map',
@@ -57,11 +46,13 @@ map.touchZoomRotate.disableRotation();
 
 
 map.on('load', function () {
+    // Add origin point as a new GeoJSON source.
     map.addSource('single-point', {
         "type": "geojson",
         "data": origin
     });
 
+    // Add a layer showing the origin point.
     map.addLayer({
         "id": "point",
         "source": "single-point",
@@ -72,8 +63,7 @@ map.on('load', function () {
         }
     });
 
-
-    // Add marker data as a new GeoJSON source
+    // Add marker data as a new GeoJSON source.
     map.addSource("markers", {
         "type": "geojson",
         "data":  markers
@@ -83,7 +73,7 @@ map.on('load', function () {
         feature.properties["marker-symbol"] = "garden"
     });
 
-    // Add a layer showing the popos markers
+    // Add a layer showing the markers.
     map.addLayer({
         "id": "markers",
         "type": "symbol",
@@ -94,8 +84,7 @@ map.on('load', function () {
     });
 });
 
-
-// Fit map to marker boundary
+// Fit map to boundaries of displayed markers
 var bounds = new mapboxgl.LngLatBounds();
 
 markers.features.forEach(function(feature) {
@@ -116,7 +105,7 @@ var popup = new mapboxgl.Popup({
 map.on('mousemove', function(e) {
     var features = map.queryRenderedFeatures(e.point, { layers: ['markers'] });
     
-    // Change the cursor style as a UI indicator.
+    // Indicate that the symbols are clickable by changing the cursor style to 'pointer'.
     map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
 
     if (!features.length) {
@@ -134,30 +123,25 @@ map.on('mousemove', function(e) {
 });
 // end popup boxes
 
-// Indicate that the symbols are clickable by changing the cursor style to 'pointer'.
-map.on('mousemove', function (e) {
-    var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers', 'posm_markers'] });
-    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
-});
 
 
-// TODO: Add favorite buttons
-$(function () {
+// // TODO: Add favorite buttons
+// $(function () {
 
-    function addToFavorites (evt) {
-        var id = this.id;
-        $.post('/add-to-favorites', {'id': id}, addToFavoritesSuccess);
-    }
+//     function addToFavorites (evt) {
+//         var id = this.id;
+//         $.post('/add-to-favorites', {'id': id}, addToFavoritesSuccess);
+//     }
 
-    function addToFavoritesSuccess(result) {
-        console.log(result.status)
-        var id = result.id
-        $.('#' + id).css('color', 'red');
-    }
+//     function addToFavoritesSuccess(result) {
+//         console.log(result.status)
+//         var id = result.id
+//         $.('#' + id).css('color', 'red');
+//     }
 
-    $('.favorite-btn').on('click', addToFavorites);
+//     $('.favorite-btn').on('click', addToFavorites);
 
-});
+// });
     
 
 </script>
