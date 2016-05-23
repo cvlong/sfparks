@@ -33,7 +33,6 @@ def index():
                             popos=popos,
                             posm=posm)
 
-
 # @app.route('/popos.json')
 # def popos_info():
 #     """GeoJSON info about popos."""
@@ -49,6 +48,13 @@ def index():
 
 #     return jsonify(popos_geo)
 
+# @app.route('/current-location', methods=['POST'])
+# def get-current-location:
+#     """Find user's current location based on browser data."""
+
+
+
+
 
 @app.route('/query', methods=['GET'])
 def query_parks():
@@ -59,11 +65,19 @@ def query_parks():
     routing = 'walking' # hardcoding for now
                         # TODO: incorporate routing into query params
 
+    # user_id = session.get('user_id')
+
+    # # if the user is logged in, show favorites
+    # if user_id:
+    #     favorites = Favorite.query.filter_by(user_id=user_id).all()
+
+
     # Geocode user input; origin is an instance of named tuple
     origin = geocode_location(origin)
 
     # Get all park objects in database
     parks = Popos.query.all()
+    posm = Posm.query.all()
 
     # Create a dictionary containing park objects within the bounding radius heuristic
     close_parks = find_close_parks(origin, time, routing, parks)
@@ -111,6 +125,39 @@ def query_parks():
 # stops the script
 # then can call functions
 
+# @app.route('/favorites')
+# # Add individual <user> to URL?
+# # def show favorites:
+#     """Display user's favorite parks."""
+
+#     # user_id = session.get("user_id")
+    
+#     # if user_id:
+#         # favorites = Favorite.query.filter_by(user_id=user_id).all()
+
+#     # return render_template('favorites.html',
+#     #                         favorites=favorites)
+
+
+@app.route('/add-to-favorites', methods=['POST'])
+def add_to_favorites():
+    """Add park to user's favorites and add to database."""
+
+    # user_id = session.get("user_id")
+    # get park_id
+    park_id = request.form.get('id') # update this field
+
+    
+    # favorite = Favorite(park_id=park_id, user_id=user_id)
+
+    # see if user has favorited park before
+    Favorite.query.filter(Favorite.park_id == park_id)
+    
+    #if...
+        # db.session.add(favorite)
+        # db.session.commit()
+
+    return jsonify(status='success', id= xx) #update this)
 
 
 @app.route('/login', methods=['POST']) #note: took out 'GET' method
@@ -124,25 +171,29 @@ def login():
 def process_login():
     """Log in existing users and redirect to homepage."""
 
-    email = request.form.get('email')
+    email = request.form.get('email') # diff. from request.form('email')??
     password = request.form.get('password')
 
     # select the user from the database who has the given email (if any)
     user = User.query.filter(User.email==email).first()
 
     if user:
-        # check to see if password is correct
+        # if user in database, check that password is correct
         if password == user.password:
             session['user'] = user.user_id
             
             flash("You're logged in.")
             return redirect('/')
-        
+
         else:  # if password does not match database
             # flash message, stay on page
             
             flash('Your password is incorrect. Please enter your information again or register as a new user.')
             return redirect('/login')
+
+    else:
+        flash('Please register as a new user.')
+        return redirect('register.html')
 
 
 @app.route('/register', methods=['POST'])
