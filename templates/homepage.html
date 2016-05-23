@@ -11,17 +11,12 @@
     <!--  TODO: customize style -->
 <!-- ^^ moved to base.html ^^ -->
 
-    <style>
-        body { margin:0; padding:0; }
-        /*#map { position:absolute; top:0; bottom:0; width:100%; }*/
-        /*Set map under login/logout & search forms until implementing bootstrap*/
-        #map { position:absolute; top:200px; bottom:0; width:100%; }
-    </style>
-
 {% endblock %}
 
 
 {% block body %}
+
+<!-- styling for popup info boxes -->
 <style>
     .mapboxgl-popup {
         max-width: 400px;
@@ -54,8 +49,8 @@
         </form>
     </div>
 
-    <div></div>
 
+    <nav id="menu"></nav>
     <div id='map'></div>
 
  <!-- Geocoder script. Ignore for now
@@ -65,33 +60,36 @@
 <!-- Could move this script to a separate JS file, then link to it here: src="/static, ETC" -->
 
 <script>
-// mapboxgl.accessToken = 'pk.eyJ1IjoiY3Zsb25nIiwiYSI6ImNpaTN0djZpbDAxNDN0OW0wMmd0OWN2M3UifQ.XTz91A9EvLazvZOs5DDzaQ';
-    // moved mapbox access token to base.html
 
 var map = new mapboxgl.Map({
     container: 'map', // container id
     style: 'mapbox://styles/mapbox/streets-v9', //stylesheet location 
     // toggle with? mapbox://styles/mapbox/satellite-streets-v9
     center: [-122.431, 37.773],
-    zoom: 12.5
+    zoom: 12.5,
+    maxBounds: bounds
 });
 
+// Disable map rotation using right click + drag
+map.dragRotate.disable();
 
-// $.get('/popos.json', function () {
-// // var markers = $('#markers')
+// Disable map rotation using touch rotation gesture
+map.touchZoomRotate.disableRotation();
 
 
 var popos_markers = {{ popos | safe }};  // | safe to disable HTML autoescape
-
 var posm_markers = {{ posm | safe }};
 
 
 map.on('load', function () {
     
-    // Add marker data as a new GeoJSON source
+    // Add POPOS marker data as a new GeoJSON source
     map.addSource("popos_markers", {
         "type": "geojson",
-        "data":  popos_markers
+        "data":  popos_markers,
+        "cluster": true,
+        "clusterMaxZoom": 14, // Max zoom to cluster points on
+        "clusterRadius": 23 // Radius of each cluster when clustering points
     });
 
     popos_markers.features.forEach(function(feature) {
@@ -105,9 +103,52 @@ map.on('load', function () {
         "source": "popos_markers",
         "layout": {
             "icon-image": "{marker-symbol}-15"
+            // 'visibility': 'visible' // not sure if this is necessary
         }
     });
 
+    // Display the popos data in three layers, each filtered to a range of
+    // count values with a different fill color.
+    var layers = [
+        [20, '#f28cb1'],
+        [10, '#f1f075'],
+        [0, '#51bbd6']
+    ];
+
+    layers.forEach(function (layer, i) {
+        map.addLayer({
+            "id": "cluster-" + i,
+            "type": "circle",
+            "source": "popos_markers",
+            "paint": {
+                "circle-color": layer[1],
+                "circle-radius": 14
+            },
+            "filter": i == 0 ?
+                [">=", "point_count", layer[0]] :
+                ["all",
+                    [">=", "point_count", layer[0]],
+                    ["<", "point_count", layers[i - 1][0]]]
+        });
+    });
+
+    // Add a layer for the clusters' count labels
+    map.addLayer({
+        "id": "cluster-count",
+        "type": "symbol",
+        "source": "popos_markers",
+        "layout": {
+            "text-field": "{point_count}",
+            "text-font": [
+                    "DIN Offc Pro Medium",
+                    "Arial Unicode MS Bold"
+                ],
+            "text-size": 12
+        }
+    });
+
+
+    // Add POSM marker data as a new GeoJSON source
     map.addSource("posm_markers", {
         "type": "geojson",
         "data":  posm_markers
@@ -122,38 +163,72 @@ map.on('load', function () {
         "type": "symbol",
         "source": "posm_markers",
         "layout": {
-            "icon-image": "{marker-symbol}-15"
+            "icon-image": "{marker-symbol}-15",
+            'visibility': 'visible' // not sure if this is necessary
         }
     });
 });
 
-// addLayer('POPOS', 'popos_markers');
-// addLayer('POSM', 'posm_markers');
 
+// Added functionality for toggling layers via menu selection
+
+addLayer('POPOS', 'popos_markers');
+addLayer('SF parks', 'posm_markers');
+
+function addLayer(name, id) {
+    var link = document.createElement('a');
+    link.href = '#';
+    link.className = 'active';
+    link.textContent = name;
+
+    link.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var visibility = map.getLayoutProperty(id, 'visibility');
+
+        if (visibility === 'visible') {
+            map.setLayoutProperty(id, 'visibility', 'none');
+            this.className = '';
+        } else {
+            this.className = 'active';
+            map.setLayoutProperty(id, 'visibility', 'visible');
+        }
+    };
+
+    var layers = document.getElementById('menu');
+    layers.appendChild(link);
+}
+// end toggle layers
+
+
+// Add popup info boxes on hover:
 // Create a popup, but don't add it to the map yet.
-// var popup = new mapboxgl.Popup({
-//     closeButton: false,
-//     closeOnClick: false
-// });
+var popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false
+});
 
-// map.on('mousemove', function(e) {
-//     var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers'] });
-//     // Change the cursor style as a UI indicator.
-//     map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+map.on('mousemove', function(e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers', 'posm_markers'] });
+    
+    // Change the cursor style as a UI indicator.
+    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
 
-//     if (!features.length) {
-//         popup.remove();
-//         return;
-//     }
+    if (!features.length) {
+        popup.remove();
+        return;
+    }
 
-//     var feature = features[0];
+    var feature = features[0];
 
-//     // Populate the popup and set its coordinates
-//     // based on the feature found.
-//     popup.setLngLat(feature.geometry.coordinates)
-//         .setHTML(feature.properties.name)
-//         .addTo(map);
-// });
+    // Populate the popup and set its coordinates
+    // based on the feature found.
+    popup.setLngLat(feature.geometry.coordinates)
+        .setHTML(feature.properties.name)
+        .addTo(map);
+});
+// end popup boxes
 
 
 
