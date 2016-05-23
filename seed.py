@@ -51,14 +51,15 @@ def load_posm():
     parks = r.json()
 
     for item in parks:
-        name = item.get('parkname').title()
-        ptype = item.get('parktype')
-        acreage = item.get('acreage')
-        zipcode = item.get('zipcode')
-        try:
-            coordinates = item.get('location_1').get('coordinates') # [-122.38450221, 37.73876792]
-        except AttributeError:
-           continue
+        if item['parkservicearea'] != "Outside SF":
+            name = item.get('parkname').title()
+            ptype = item.get('parktype')
+            acreage = item.get('acreage')
+            zipcode = item.get('zipcode')
+            try:
+                coordinates = item.get('location_1').get('coordinates') # [-122.38450221, 37.73876792]
+            except AttributeError:
+               continue
 
         posm = Posm(name=name,
                     latitude=coordinates[1],
