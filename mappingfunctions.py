@@ -29,7 +29,6 @@ def find_close_parks(origin, time, routing, parks):
             close_parks[park.park_id] = park
 
     return close_parks
-    # {32: <POPOS park_id: 32, address: 600 California St>, 33: <POPOS park_id: 33, address: 845 Market St>, ETC
 
 
 def find_appx_dist(time, routing):

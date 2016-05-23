@@ -17,12 +17,12 @@ service = Distance(access_token=MB_ACCESS_TOKEN)
 def geocode_location(location):
     """Geocodes origin and returnes lng/lat in named tuple."""
 
-    # Forward geocoding with proximity so results are biased toward a given lng/lat
+    # Forward geocoding with proximity so results are biased toward given lng/lat
     response = geocoder.forward(location, lon=-122.431, lat=37.773)
     
     if response.status_code == 200:
         first = response.geojson()['features'][0]
-        print first
+
         origin_lng = first['geometry']['coordinates'][0]
         origin_lat = first['geometry']['coordinates'][1]
 
@@ -45,42 +45,20 @@ def find_distance(origin, destination):
     return vincenty(origin, destination).miles
 
 
-# The input waypoints to the distance method are GeoJSON-like feature dictionaries
-origin = {
-    'type': 'Feature',
-    'properties': {'name': '555'},
-    'geometry': {
-        'type': 'Point',
-        'coordinates': [-122.7282, 45.5801]}}
-destination = {
-    'type': 'Feature',
-    'properties': {'name': '555 Mission St'},
-    'geometry': {
-        'type': 'Point',
-        'coordinates': [-122.39891, 37.7884]}}
-
-# Write function to trasform database info > name, coordinates in GeoJSON dictionary
-# geojson.io to check!
-
-# Filter using turf before sending reuest
+# Use geojson.io to verify format!
+# Filter using turf before sending reuest?
 
 
 # def get_routing_time(origin, destinations, routing):
     # First argument = list w/ origin geojson object + geojson objects of all parks
 
 def get_routing_times(routing_list, routing):
-    """Find routing time from origin to a list of features.
-
-    The Mapbox Distance API optimizes travel between several waypoints,
-    producing a "Distance Matrix" showing travel times between all waypoints.
-    The routing_list is a list of GeoJSON point features for the origin plus
-    each park destination.
-    """
+    """Use Mapbox Distane API to find routing time from origin to a list of features."""
 
     # response = service.distances([origin, destinations], routing)
     response = service.distances(routing_list, routing)
     
-    # TODO ADD IF STATEMENT HERE
+    # TODO: ADD IF STATEMENT HERE
     print response.status_code
     # 200
     
@@ -90,11 +68,10 @@ def get_routing_times(routing_list, routing):
     # pprint(response.json()['durations'])
     # [[0, ..., ...], [..., 0, ...], [..., ..., 0]]
 
-
     # TODO: if durations not in response.json print response.json
-    #Log in log file; then say "an error has occurred please try again"
+    # Log in log file; then say "an error has occurred please try again"
 
 
     return response.json()['durations'][0][1:]
     # [0][1:] returns the first line of the distance matrix, skipping the first
-    # element (which the value is 0)
+    # element (which has a value of 0).
