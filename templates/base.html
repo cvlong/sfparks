@@ -1,47 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset='utf-8' />
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
   
   <title>{% block title %} {% endblock %}</title>
   
-  <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/styles.css" />
   
-  <meta charset='utf-8' />
-  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
   <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.18.0/mapbox-gl.js'></script>
   <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.18.0/mapbox-gl.css' rel='stylesheet' />
-          <!--  TODO: customize style -->
+    <!--  TODO: customize style -->
+
+  <script src='//api.tiles.mapbox.com/mapbox.js/plugins/turf/v2.0.0/turf.min.js'></script>
 
   <script src="https://code.jquery.com/jquery.js"></script>
  
   {% block head %} {% endblock %}
-
 </head>
 
-<body>
 
-<script>mapboxgl.accessToken = 'pk.eyJ1IjoiY3Zsb25nIiwiYSI6ImNpaTN0djZpbDAxNDN0OW0wMmd0OWN2M3UifQ.XTz91A9EvLazvZOs5DDzaQ';
-</script>
+<body>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiY3Zsb25nIiwiYSI6ImNpaTN0djZpbDAxNDN0OW0wMmd0OWN2M3UifQ.XTz91A9EvLazvZOs5DDzaQ';
+  
+    // // Set bounds to San Francisco proper
+    // var bounds = [
+    //   [-122.561233, 37.670213], // Southwest coordinates
+    //   [-122.342193, 37.841763]  // Northeast coordinates
+    // ];
+
+  </script>
 
   <div>
-  {% if "user" in session %}
-    <form action="/logout" method='POST'>
-        <input type='submit' value='Sign out'>
-    </form>
-  {% else %}
-    <form action="/login" method='POST'>
-        <input type='submit' value='Sign in'>
-    </form>
-  {% endif %}
+    {% if "user" in session %}
+      <form action="/logout" method='POST'>
+          <input type='submit' value='Sign out'>
+      </form>
+    {% else %}
+      <form action="/login" method='POST'>
+          <input type='submit' value='Sign in'>
+      </form>
+    {% endif %}
   </div>
 
-  <br>
+  <br />
+
   <ul>
     {% for message in get_flashed_messages() %}
       <li>{{ message }}</li>
     {% endfor %}
   </ul>
-  <hr>
+  
+  <hr />
 
   {% block body %} {% endblock %}
 

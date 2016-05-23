@@ -49,6 +49,12 @@
         </form>
     </div>
 
+<!-- separate button to get user's current location via Ajax call -->
+    <div>
+        <button id="use-current-location">Use current location</button>
+        <span id="output"></span>
+    </div>
+
 
     <nav id="menu"></nav>
     <div id='map'></div>
@@ -62,8 +68,8 @@
 <script>
 
 var map = new mapboxgl.Map({
-    container: 'map', // container id
-    style: 'mapbox://styles/mapbox/streets-v9', //stylesheet location 
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v9',
     // toggle with? mapbox://styles/mapbox/satellite-streets-v9
     center: [-122.431, 37.773],
     zoom: 12.5,
@@ -102,8 +108,8 @@ map.on('load', function () {
         "type": "symbol",
         "source": "popos_markers",
         "layout": {
-            "icon-image": "{marker-symbol}-15"
-            // 'visibility': 'visible' // not sure if this is necessary
+            "icon-image": "{marker-symbol}-15",
+            'visibility': 'visible' // not sure if this is necessary
         }
     });
 
@@ -170,6 +176,17 @@ map.on('load', function () {
 });
 
 
+// Fit map to posm_markers boundary
+var bounds = new mapboxgl.LngLatBounds();
+
+posm_markers.features.forEach(function(feature) {
+    bounds.extend(feature.geometry.coordinates);
+});
+
+map.fitBounds(bounds, {padding: '50'});
+// end fit to bounds
+
+
 // Added functionality for toggling layers via menu selection
 
 addLayer('POPOS', 'popos_markers');
@@ -230,7 +247,47 @@ map.on('mousemove', function(e) {
 });
 // end popup boxes
 
+// Indicate that the symbols are clickable by changing the cursor style to 'pointer'.
+map.on('mousemove', function (e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers', 'posm_markers'] });
+    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+});
 
+
+// allow user to start from their current location
+$('#use-current-location').on('click', findCurrentLocation);
+
+function findCurrentLocation(evt) {
+    var output = document.getElementById("output");
+
+    if (!navigator.geolocation){
+        output.innerHTML = "<p>Geolocation is not supported by your browser</p>";
+        return;
+    }
+
+    function success(position) {
+        var currentLatitude  = position.coords.latitude;
+        var currentLongitude = position.coords.longitude;
+        console.log('latitude: ' + currentLatitude + ' \n longitude: ' + currentLongitude);
+    // output.innerHTML = '<p>Latitude is ' + currentLatitude + '<br>Longitude is ' + currentLongitude + '</p>';
+    };
+
+    function error() {
+        output.innerHTML = "Unable to retrieve your location";
+    };
+
+    // output.innerHTML = "<p>Locating…</p>";
+
+    navigator.geolocation.getCurrentPosition(success, error);
+
+};
+
+// Send currentLatitude, currentLongitude back to server??
+    // $.post('/current-location.json', {
+    //     'latitude': document.getElementBy??('currentLatitude'),
+        //     'longitude': document.getElementBy??('currentLongitude')
+        // },
+        // function (SEND TO SERVER)
 
 
 // Geocoder script. Ignore for now
