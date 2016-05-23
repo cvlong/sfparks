@@ -3,31 +3,9 @@
 {% block title %}SFparks{% endblock %}
 
 {% block head %} 
-<!-- moved to base.html -->
-    <!-- <meta charset='utf-8' /> -->
-    <!-- <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' /> -->
-    <!-- <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.18.0/mapbox-gl.js'></script> -->
-    <!-- <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.18.0/mapbox-gl.css' rel='stylesheet' /> -->
-    <!--  TODO: customize style -->
-<!-- ^^ moved to base.html ^^ -->
-
 {% endblock %}
 
-
 {% block body %}
-
-<!-- styling for popup info boxes -->
-<style>
-    .mapboxgl-popup {
-        max-width: 400px;
-        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
-    }
-
-    .marker-title {
-        font-weight: 700;
-    }
-</style>
-
 
     <div id="origin-input">
         <form action="/query" method="GET">
@@ -49,7 +27,7 @@
         </form>
     </div>
 
-<!-- separate button to get user's current location via Ajax call -->
+<!-- separate button to get user's current location -->
     <div>
         <button id="use-current-location">Use current location</button>
         <span id="output"></span>
@@ -59,11 +37,7 @@
     <nav id="menu"></nav>
     <div id='map'></div>
 
- <!-- Geocoder script. Ignore for now
-    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v1.0.0/mapbox-gl-geocoder.js'></script>
-    <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v1.0.0/mapbox-gl-geocoder.css' type='text/css' /> -->
-
-<!-- Could move this script to a separate JS file, then link to it here: src="/static, ETC" -->
+<!-- Could move scripts to a separate JS file, then link to it here: src="/static, ETC" -->
 
 <script>
 
@@ -72,8 +46,8 @@ var map = new mapboxgl.Map({
     style: 'mapbox://styles/mapbox/streets-v9',
     // toggle with? mapbox://styles/mapbox/satellite-streets-v9
     center: [-122.431, 37.773],
-    zoom: 12.5,
-    maxBounds: bounds
+    zoom: 12.5
+    // maxBounds: bounds
 });
 
 // Disable map rotation using right click + drag
@@ -89,7 +63,7 @@ var posm_markers = {{ posm | safe }};
 
 map.on('load', function () {
     
-    // Add POPOS marker data as a new GeoJSON source
+    // Add POPOS marker data as a new GeoJSON source.
     map.addSource("popos_markers", {
         "type": "geojson",
         "data":  popos_markers,
@@ -102,7 +76,7 @@ map.on('load', function () {
         feature.properties["marker-symbol"] = "garden"
     });
 
-    // Add a layer showing the popos markers
+    // Add a layer showing the POPOS markers.
     map.addLayer({
         "id": "popos_markers",
         "type": "symbol",
@@ -113,7 +87,7 @@ map.on('load', function () {
         }
     });
 
-    // Display the popos data in three layers, each filtered to a range of
+    // Display the POPOS data in three layers, each filtered to a range of
     // count values with a different fill color.
     var layers = [
         [20, '#f28cb1'],
@@ -138,7 +112,7 @@ map.on('load', function () {
         });
     });
 
-    // Add a layer for the clusters' count labels
+    // Add a layer for the POPOS clusters' count labels.
     map.addLayer({
         "id": "cluster-count",
         "type": "symbol",
@@ -154,7 +128,7 @@ map.on('load', function () {
     });
 
 
-    // Add POSM marker data as a new GeoJSON source
+    // Add POSM marker data as a new GeoJSON source.
     map.addSource("posm_markers", {
         "type": "geojson",
         "data":  posm_markers
@@ -164,6 +138,7 @@ map.on('load', function () {
         feature.properties["marker-symbol"] = "monument"
     });
 
+    // Add a layer showing the POSM markers.
     map.addLayer({
         "id": "posm_markers",
         "type": "symbol",
@@ -176,7 +151,7 @@ map.on('load', function () {
 });
 
 
-// Fit map to posm_markers boundary
+// Fit map to posm_markers boundary, since they are the most spread out
 var bounds = new mapboxgl.LngLatBounds();
 
 posm_markers.features.forEach(function(feature) {
@@ -187,8 +162,7 @@ map.fitBounds(bounds, {padding: '50'});
 // end fit to bounds
 
 
-// Added functionality for toggling layers via menu selection
-
+// Add functionality for toggling layers via menu selection
 addLayer('POPOS', 'popos_markers');
 addLayer('SF parks', 'posm_markers');
 
@@ -219,17 +193,18 @@ function addLayer(name, id) {
 // end toggle layers
 
 
-// Add popup info boxes on hover:
-// Create a popup, but don't add it to the map yet.
+// Create a popup info box on hover, but don't add it to the map yet.
 var popup = new mapboxgl.Popup({
     closeButton: false,
     closeOnClick: false
 });
 
+
+// Change the cursor style as a UI indicator.
 map.on('mousemove', function(e) {
     var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers', 'posm_markers'] });
     
-    // Change the cursor style as a UI indicator.
+    // Indicate that the symbols are clickable by changing the cursor style to 'pointer'.
     map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
 
     if (!features.length) {
@@ -238,24 +213,53 @@ map.on('mousemove', function(e) {
     }
 
     var feature = features[0];
-
-    // Populate the popup and set its coordinates
-    // based on the feature found.
+    // Populate the popup and set its coordinates based on the feature found.
     popup.setLngLat(feature.geometry.coordinates)
-        .setHTML(feature.properties.name)
+        .setHTML("<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class='favorite-btn' onclick='addToFavorites.bind(this, " + feature.properties.id + ")'>&hearts; Favorite</button></div>")
         .addTo(map);
+
 });
 // end popup boxes
 
-// Indicate that the symbols are clickable by changing the cursor style to 'pointer'.
-map.on('mousemove', function (e) {
-    var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers', 'posm_markers'] });
-    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
-});
+
+// // TODO: Add favorite buttons
+
+function addToFavorites (id) {
+    console.log(this);
+    console.log(id);
+    var id = this.id;
+    var type = this.type;
+    $.post('/add-to-favorites.json', {'id': id, 'type': type}, addToFavoritesSuccess);
+}
+
+function addToFavoritesSuccess(result) {
+    console.log(result.status);
+    var id = result.id;
+    $('#' + id).css('color', 'red');
+}
 
 
-// allow user to start from their current location
+// // $('.favorite-btn').on('click', addToFavorites);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Collect user's current location vis browser
 $('#use-current-location').on('click', findCurrentLocation);
+
+var currentLatitude
+var currentLongitude
 
 function findCurrentLocation(evt) {
     var output = document.getElementById("output");
@@ -266,8 +270,8 @@ function findCurrentLocation(evt) {
     }
 
     function success(position) {
-        var currentLatitude  = position.coords.latitude;
-        var currentLongitude = position.coords.longitude;
+        currentLatitude  = position.coords.latitude;
+        currentLongitude = position.coords.longitude;
         console.log('latitude: ' + currentLatitude + ' \n longitude: ' + currentLongitude);
     // output.innerHTML = '<p>Latitude is ' + currentLatitude + '<br>Longitude is ' + currentLongitude + '</p>';
     };
@@ -282,16 +286,23 @@ function findCurrentLocation(evt) {
 
 };
 
-// Send currentLatitude, currentLongitude back to server??
-    // $.post('/current-location.json', {
-    //     'latitude': document.getElementBy??('currentLatitude'),
-        //     'longitude': document.getElementBy??('currentLongitude')
-        // },
-        // function (SEND TO SERVER)
 
+// ON clickprevents form submission, finds current location, then go to route and don't use Ajax
 
-// Geocoder script. Ignore for now
-// map.addControl(new mapboxgl.Geocoder());
+// prevent default,
+// get curret location
+// then submit
+
+// In JS to redirect to other page, AKA python route
+
+// // Send currentLatitude, currentLongitude back to server??
+//     $.post('/current-location.json', { //ajax goes to this route, and sends this json like form data
+//         'latitude': currentLatitude,
+//         'longitude': currentLongitude
+//         },
+//         function (data) {
+//             //THIS IS WHAT YOU DO WITH THE DATA - change the DOM, request something, save it
+//         } //uin python, at end of route, this is what gets returned 
 
 </script>
 

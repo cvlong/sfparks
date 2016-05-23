@@ -38,6 +38,8 @@ class Popos(db.Model):
                 "coordinates": [self.longitude, self.latitude]
             },
             "properties": {
+                "type": "popos",
+                "id": self.park_id,
                 "name": self.name,
                 "address": self.address,
                 "marker-symbol": None,
@@ -85,6 +87,8 @@ class Posm(db.Model):
                 "coordinates": [self.longitude, self.latitude]
             },
             "properties": {
+                "type": "posm",
+                "id": self.park_id,
                 "name": self.name,
                 "marker-symbol": None,
                 "routing_time": None,
@@ -138,14 +142,21 @@ class Favorite(db.Model):
     __tablename__ = "favorites"
 
     fav_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
-        # TODO: LINK TO PARKS ASSOCIATION TABLE
+    popos_id = db.Column(db.Integer, db.ForeignKey('popos.park_id'))
+    posm_id = db.Column(db.Integer, db.ForeignKey('posm.park_id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     logged_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    # user = db.relationship('User', backref=db.backref'favorites')
+    user = db.relationship('User', backref=db.backref('favorites'))
 
-    # park = db.relationship('Park', backref=db.backref'favorites')
+    popos = db.relationship('Popos', backref=db.backref('favorites'))
+    posm = db.relationship('Posm', backref=db.backref('favorites'))
+
+
+    def __repr__(self):
+        """Define how model displays."""
+
+        return "<User user_id: {}, favorite: {} popos/{} posm>".format(self.user, self.popos, self.posm)
 
 
 ##############################################################################

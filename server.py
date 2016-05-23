@@ -33,27 +33,14 @@ def index():
                             popos=popos,
                             posm=posm)
 
-# @app.route('/popos.json')
-# def popos_info():
-#     """GeoJSON info about popos."""
 
-#     popos = Popos.query.all()
-
-#     geojson_popos = []
-
-#     for park in popos:
-#         geojson_popos.append(park.create_geojson_object())
-
-#     popos_geo = FeatureCollection(geojson_popos)
-
-#     return jsonify(popos_geo)
-
-# @app.route('/current-location', methods=['POST'])
-# def get-current-location:
-#     """Find user's current location based on browser data."""
+# @app.route('/current-location.json', methods=['POST'])
+# def get_current_location:
+    """Find user's current location based on browser data."""
 
 
-
+# RETURN ALL OF HE MARKERS IN JSON
+# MARKERS: KEY, VALUE: ALL MARKERS
 
 
 @app.route('/query', methods=['GET'])
@@ -139,25 +126,25 @@ def query_parks():
 #     #                         favorites=favorites)
 
 
-@app.route('/add-to-favorites', methods=['POST'])
-def add_to_favorites():
-    """Add park to user's favorites and add to database."""
+# @app.route('/add-to-favorites', methods=['POST'])
+# def add_to_favorites():
+#     """Add park to user's favorites and add to database."""
 
-    # user_id = session.get("user_id")
-    # get park_id
-    park_id = request.form.get('id') # update this field
+#     # user_id = session.get("user_id")
+#     # get park_id
+#     park_id = request.form.get('id') # update this field
 
     
-    # favorite = Favorite(park_id=park_id, user_id=user_id)
+#     # favorite = Favorite(park_id=park_id, user_id=user_id)
 
-    # see if user has favorited park before
-    Favorite.query.filter(Favorite.park_id == park_id)
+#     # see if user has favorited park before
+#     Favorite.query.filter(Favorite.park_id == park_id)
     
-    #if...
-        # db.session.add(favorite)
-        # db.session.commit()
+#     #if...
+#         # db.session.add(favorite)
+#         # db.session.commit()
 
-    return jsonify(status='success', id= xx) #update this)
+#     return jsonify(status='success', id= xx) #update this)
 
 
 @app.route('/login', methods=['POST']) #note: took out 'GET' method
