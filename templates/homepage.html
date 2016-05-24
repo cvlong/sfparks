@@ -21,7 +21,10 @@
                   <option value="30">30 mins.</option>
                   <option value="45">45 mins.</option>
                 </select>
-            <!-- routing = 'walking' -->
+
+            <label for="field-routing">Routing profile:</label>
+                <input type="radio" name="routing" value="walking">Walking
+                <input type="radio" name="routing" value="cycling">Cycling
 
         <input type="submit" value="Let's go!">
         </form>
@@ -215,27 +218,22 @@ map.on('mousemove', function(e) {
     var feature = features[0];
     // Populate the popup and set its coordinates based on the feature found.
     popup.setLngLat(feature.geometry.coordinates)
-        .setHTML("<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class='favorite-btn' onclick='addToFavorites.bind(this, " + feature.properties.id + ")'>&hearts; Favorite</button></div>")
+        .setHTML("<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class='favorite-btn' onclick='addToFavorites(" + feature.properties.id + ",\"" + feature.properties.type + "\")'>&hearts; Favorite</button></div>")
         .addTo(map);
 
 });
 // end popup boxes
 
-
-// // TODO: Add favorite buttons
-
-function addToFavorites (id) {
-    console.log(this);
-    console.log(id);
-    var id = this.id;
-    var type = this.type;
+function addToFavorites (id, type) {
+    // console.log(id);
+    // console.log(type);
     $.post('/add-to-favorites.json', {'id': id, 'type': type}, addToFavoritesSuccess);
 }
 
 function addToFavoritesSuccess(result) {
     console.log(result.status);
     var id = result.id;
-    $('#' + id).css('color', 'red');
+    $('.favorite-btn#' + id).css('color', 'red');
 }
 
 
