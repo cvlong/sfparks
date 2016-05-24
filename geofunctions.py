@@ -57,7 +57,7 @@ def get_routing_times(routing_list, routing):
 
     # response = service.distances([origin, destinations], routing)
     response = service.distances(routing_list, routing)
-    
+
     # TODO: ADD IF STATEMENT HERE
     print response.status_code
     # 200
@@ -67,6 +67,9 @@ def get_routing_times(routing_list, routing):
 
     # pprint(response.json()['durations'])
     # [[0, ..., ...], [..., 0, ...], [..., ..., 0]]
+
+    # IF ['durations'] not in response.json()
+    # PRINT response.json()['message']
 
     # TODO: if durations not in response.json print response.json
     # Log in log file; then say "an error has occurred please try again"

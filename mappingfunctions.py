@@ -26,7 +26,7 @@ def find_close_parks(origin, time, routing, parks):
     for park in parks:
         dist = find_distance((origin.latitude, origin.longitude), (park.latitude, park.longitude))
         if dist < find_appx_dist(time, routing):
-            close_parks[park.park_id] = park
+            close_parks[park.name] = park
 
     return close_parks
 
@@ -36,8 +36,10 @@ def find_appx_dist(time, routing):
 
     if routing == 'walking':
         appx_dist = int(time) * 0.06  # Average walking pace of 4 mph
+    elif routing == 'cycling':
+        appx_dist = int(time) * 0.2  # Average cycling pace of 12 mph
 
-        return appx_dist
+    return appx_dist
 
 
 def add_routing_time(geojson_destinations, routing_times):
