@@ -225,17 +225,28 @@ map.on('mousemove', function(e) {
 // end popup boxes
 
 function addToFavorites (id, type) {
-    // console.log(id);
-    // console.log(type);
-    $.post('/add-to-favorites.json', {'id': id, 'type': type}, addToFavoritesSuccess);
+    if ($('.favorite-btn#' + id).hasClass('favorite')) {
+        $.post('/remove-from-favorites.json', {'id': id, 'type': type}, removeFromFavorites);
+    }
+    else {
+        $.post('/add-to-favorites.json', {'id': id, 'type': type}, addToFavoritesSuccess);
+    }
 }
 
 function addToFavoritesSuccess(result) {
     console.log(result.status);
     var id = result.id;
-    $('.favorite-btn#' + id).css('color', 'red');
+    $('.favorite-btn#' + id).addClass('favorite');
 }
 
+function removeFromFavorites(result) {
+
+}
+//creating a new box every time, not checking whether that thing has been favorited
+//every time it's pulled up - is this item favorited? check. then if not, show not red button
+
+//OR when someone favorites it, make an ajax call to add to the session - some way to itentify in the session what has been favorited
+//List of favorited park ids, or 
 
 // // $('.favorite-btn').on('click', addToFavorites);
 
@@ -256,13 +267,13 @@ function addToFavoritesSuccess(result) {
 // Collect user's current location vis browser
 $('#use-current-location').on('click', findCurrentLocation);
 
-var currentLatitude
-var currentLongitude
+var currentLatitude;
+var currentLongitude;
 
 function findCurrentLocation(evt) {
     var output = document.getElementById("output");
 
-    if (!navigator.geolocation){
+    if (!navigator.geolocation) {
         output.innerHTML = "<p>Geolocation is not supported by your browser</p>";
         return;
     }
@@ -271,21 +282,28 @@ function findCurrentLocation(evt) {
         currentLatitude  = position.coords.latitude;
         currentLongitude = position.coords.longitude;
         console.log('latitude: ' + currentLatitude + ' \n longitude: ' + currentLongitude);
-    // output.innerHTML = '<p>Latitude is ' + currentLatitude + '<br>Longitude is ' + currentLongitude + '</p>';
+        $.post('/current-location.json', {'latitude': currentLatitude, 'longitude': currentLongitude}, sendLatLngSuccess);
+        output.innerHTML = '<p>Latitude is ' + currentLatitude + '<br>Longitude is ' + currentLongitude + '</p>';
     };
 
     function error() {
         output.innerHTML = "Unable to retrieve your location";
     };
 
-    // output.innerHTML = "<p>Locating…</p>";
+    output.innerHTML = "<p>Locating…</p>";
 
     navigator.geolocation.getCurrentPosition(success, error);
-
 };
 
 
-// ON clickprevents form submission, finds current location, then go to route and don't use Ajax
+function sendLatLngSuccess(result) {
+    console.log(result.status);
+    console.log(result.latitude);
+    $('#field-origin').html(newLatLng);
+}
+
+
+// ON clickprevents form submission, finds current location, then go to route w/o using Ajax
 
 // prevent default,
 // get curret location

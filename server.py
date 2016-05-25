@@ -34,9 +34,14 @@ def index():
                             posm=posm)
 
 
-# @app.route('/current-location.json', methods=['POST'])
-# def get_current_location:
+@app.route('/current-location.json', methods=['POST'])
+def get_current_location():
     """Find user's current location based on browser data."""
+
+    latitude = request.form.get('latitude')
+    longitude = request.form.get('longitude')
+
+    return jsonify(status='success', latitude=latitude, longitude=longitude)
 
 
 # RETURN ALL OF HE MARKERS IN JSON
@@ -71,13 +76,10 @@ def query_parks():
 
     # Create a dictionary containing park objects within the bounding radius heuristic
     close_parks = find_close_parks(origin, time, routing, parks)
-    print "CLOSE PARKS", close_parks
 
     # Create a list of GeoJSON objects for close parks
     geojson_destinations = [park.create_geojson_object() for park in close_parks.values()]
         # [{'geometry': {'type': 'Point', 'coordinates': [-122.40487, 37.79277]}, 'type': 'Feature', 'properties': {'name': u'600 California St', 'address': u'600 California St'}}, {'geometry': {'type': 'Point', 'coordinates': [-122.40652, 37.78473]}, 'type': 'Feature', 'properties': {'name': u'Westfield Sky Terrace (Wesfield Center Mall)', 'address': u'845 Market St'}},
-
-    print "GEOJSON DEST", geojson_destinations
 
     # Convert origin coordinates to GeoJSON object
     geojson_origin = Feature(geometry=Point((origin.longitude, origin.latitude)))
@@ -133,7 +135,11 @@ def query_parks():
 
 @app.route('/add-to-favorites.json', methods=['POST'])
 def add_to_favorites():
-    """Add park to user's favorites and add to database."""
+    """Add park to user's favorites.
+
+    If the user is logged in, add to favorite to the database. Otherwise,
+    add the favorited park to the session.
+    """
 
     park_id = request.form.get('id')
     park_type = request.form.get('type')
@@ -141,21 +147,55 @@ def add_to_favorites():
     print park_id
     print park_type
 
-    # user_id = session.get("user_id")
-    # get park_id
-    # park_id = request.form.get('id') # update this field
+ 
+    user = session.get("user_id")
+    """
+    # if user is logged in, add park to the favorites db table
+    if user:
+        
+        if park_type == "popos":
+            # instantiate a favorite object with the information provided
+            favorite = Favorite(popos_id=park_id, user_id=user_id)
+        
+        elif park_type == "posm":
+            # instantiate a favorite object with the information provided
+            favorite = Favorite(posm_id=park_id, user_id=user_id)
 
-    
-    # # favorite = Favorite(park_id=park_id, user_id=user_id)
+    # add favorite to db session and commit to database
+    db.session.add(favorite)
+    db.session.commit()
 
+    print "Favorite committed to DB"
+    # flash("") # No flash message for now because JS event handler changes the UI
+    """
     # # see if user has favorited park before
-    # Favorite.query.filter(Favorite.park_id == park_id)
-    
-    # #if...
-    #     # db.session.add(favorite)
-    #     # db.session.commit()
+    # Favorite.query.filter(Favorite.popos_id == park_id).first()
 
-    return jsonify(status='success', id= park_id) #update this)
+    
+    # else:
+        # session['user']
+
+    return jsonify(status='successfully added favorite', id=park_id, type=park_type) #update this)
+
+
+@app.route('/remove-from-favorites.json', methods=['POST'])
+def remove_from_favorites():
+    """Remove park from user's favorites.
+
+    xxx
+    """
+
+    park_id = request.form.get('id')
+    park_type = request.form.get('type')
+
+    print park_id
+    print park_type
+
+
+    #REMOVE FROM DATABASE
+
+    return jsonify(status='successfully removed favorite', id=park_id, type=park_type)
+
 
 
 @app.route('/login', methods=['POST']) #note: took out 'GET' method
@@ -226,7 +266,7 @@ def process_registration():
 def logout():
     """Log user out."""
 
-    # remove user id from session
+    # remove user_id from session
     del session['user']
     
     flash('You are now logged out.')
