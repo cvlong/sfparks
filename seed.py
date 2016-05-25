@@ -2,10 +2,10 @@
 
 # from sqlalchemy import func
 
-from model import connect_to_db, db, Popos, Posm #add Models
-from server import app
 import requests
 from datetime import datetime
+from server import app
+from model import connect_to_db, db, Park, Popos, Posm #add Models
 
 
 def load_popos():
@@ -15,26 +15,43 @@ def load_popos():
 
     # Delete all rows in table, so we're not creating duplicate entries
     # if we need to run this a second time
-    Popos.query.delete()
+    # Popos.query.delete()
 
     # Read popos.csv file and parse data
     for row in open("seed_data/popos.csv"):
         row = row.rstrip()
 
-        name, address, latitude, longitude, subj, ptype = row.split(",")[1:7] 
+        name, address, latitude, longitude, subj, popos_type = row.split(",")[1:7]
 
-        popos = Popos(name=name,
+        park = Park(park_type='popos',
+                    name=name,
+                    latitude=float(latitude),
+                    longitude=float(longitude))
+
+        # Add popos data to the parks db session & commit session to db
+        db.session.add(park)
+        db.session.commit()
+
+
+        popos = Popos(park_id=park.park_id,
                       address=address,
-                      latitude=float(latitude),
-                      longitude=float(longitude),
-                      ptype=ptype)
+                      popos_type=popos_type)
 
-        # Add popos data to the db session
+        # Add popos data to the popos db session & commit session to db
         db.session.add(popos)
-        
-    # Commit session to db
-    db.session.commit()
+        db.session.commit()
+    
     print "Committed to DB"
+
+
+# parks object
+# session.add(park)
+# session.flush()
+# session.refresh(park)
+# then can take that object and get its ID
+# park.park_id
+# then put this in the popos table
+# then commit everything at the end
 
 
 def load_posm():
@@ -44,7 +61,7 @@ def load_posm():
 
     # Delete all rows in table, so we're not creating duplicate entries
     # if we need to run this a second time
-    Posm.query.delete()
+    # Posm.query.delete()
 
     # Call API and parse data
     r = requests.get('https://data.sfgov.org/resource/94uf-amnx.json')
@@ -53,7 +70,7 @@ def load_posm():
     for item in parks:
         if item['parkservicearea'] != "Outside SF":
             name = item.get('parkname').title()
-            ptype = item.get('parktype')
+            posm_type = item.get('parktype')
             acreage = item.get('acreage')
             zipcode = item.get('zipcode')
             try:
@@ -61,18 +78,24 @@ def load_posm():
             except AttributeError:
                continue
 
-        posm = Posm(name=name,
+        park = Park(park_type='posm',
+                    name=name,
                     latitude=coordinates[1],
-                    longitude=coordinates[0],
-                    ptype=ptype,
+                    longitude=coordinates[0])
+
+        # Add posm data to the parks db session & commit session to db
+        db.session.add(park)
+        db.session.commit()
+
+        posm = Posm(park_id=park.park_id,
+                    posm_type=posm_type,
                     acreage=acreage,
                     zipcode=zipcode)
 
-        # Add posm data to the db session
+        # Add posm data to the posm db session & commit session to db
         db.session.add(posm)
-
-    # Commit session to db
-    db.session.commit()
+        db.session.commit()
+    
     print "Committed to DB"
 
 
