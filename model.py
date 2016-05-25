@@ -11,25 +11,25 @@ db = SQLAlchemy()
 
 ##############################################################################
 
-#Model definitions
+class Park(db.Model):
+    """SF parks from POPOS and POSM data sources."""
 
-# TODO: Determine relationships b/w comments & users/parks. Set backref using foreign keys.
-
-class Popos(db.Model):
-    """Privately-Owned Public Open Space on SFparks website."""
-
-    __tablename__ = "popos"
+    __tablename__ = "parks"
 
     park_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    park_type = db.Column(db.String(30), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    address = db.Column(db.String(150), nullable=False)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
-    ptype = db.Column(db.String(100))
 
+    popos = db.relationship('Popos', backref=db.backref('parks'))
+    posm = db.relationship('Posm', backref=db.backref('parks'))
 
     def create_geojson_object(self):
-        """Creates GeoJSON object for popos data."""
+        """Creates GeoJSON object for park data."""
+
+        # if self.park_type == "popos":
+        #     then marker-symbol==monument, etc.
         
         geojson_obj = {
             "type": "Feature",
@@ -38,29 +38,48 @@ class Popos(db.Model):
                 "coordinates": [self.longitude, self.latitude]
             },
             "properties": {
-                "type": "popos",
                 "id": self.park_id,
+                "type": self.park_type,
                 "name": self.name,
-                "address": self.address,
+                "address": self.address, # FOR POPOS
                 "marker-symbol": None,
                 "routing_time": None,
                 }
         }
 
         return geojson_obj
-
+    
 
     @classmethod
-    def get_park_type(cls, ptype):
+    def get_park_type(cls, park_type):
         """Get all parks matching a certain park type."""
 
-        return cls.query.filter_by(ptype=ptype).all()
+        return cls.query.filter_by(park_type=park_type).all()
 
 
     def __repr__(self):
         """Define how model displays."""
 
-        return "<POPOS park_id: {}, address: {}>".format(self.park_id, self.address)
+        return "<park_id: {}, park_type: {}, name: {}>".format(self.park_id,
+                                                               self.park_type,
+                                                               self.name)
+
+
+class Popos(db.Model):
+    """Privately-Owned Public Open Space on SFparks website."""
+
+    __tablename__ = "popos"
+
+    primary = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
+    address = db.Column(db.String(150), nullable=False)
+    popos_type = db.Column(db.String(100))
+
+
+    def __repr__(self):
+        """Define how model displays."""
+
+        return "<park_id: {}, address: {}>".format(self.park_id, self.address)
 
 
 class Posm(db.Model):
@@ -68,56 +87,17 @@ class Posm(db.Model):
 
     __tablename__ = "posm"
 
-    park_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
-    ptype = db.Column(db.String(100))
+    primary = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
+    posm_type = db.Column(db.String(100))
     acreage = db.Column(db.Float)
     zipcode = db.Column(db.Integer)
-
-
-    def create_geojson_object(self):
-        """Creates GeoJSON object for posm data."""
-        
-        geojson_obj = {
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [self.longitude, self.latitude]
-            },
-            "properties": {
-                "type": "posm",
-                "id": self.park_id,
-                "name": self.name,
-                "marker-symbol": None,
-                "routing_time": None,
-                }
-        }
-
-        return geojson_obj
-
-
-    # @classmethod
-    # def get_park_type(cls, ptype):
-    #     """Get all parks matching a certain park type."""
-
-    #     return cls.query.filter_by(ptype=ptype).all()
 
 
     def __repr__(self):
         """Define how model displays."""
 
-        return "<POSM park_id: {}, name: {}>".format(self.park_id, self.name)
-
-
-
-# class Park(db.Model):
-#     """Aggregates IDs from POPOS, parks tables."""
-
-    # __tablename__ = "parks"
-
-    # TODO: SETUP ASSOCIATION TABLE
+        return "<park_id: {}, name: {}>".format(self.park_id, self.parks.name)
 
 
 class User(db.Model):
@@ -142,21 +122,19 @@ class Favorite(db.Model):
     __tablename__ = "favorites"
 
     fav_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    popos_id = db.Column(db.Integer, db.ForeignKey('popos.park_id'))
-    posm_id = db.Column(db.Integer, db.ForeignKey('posm.park_id'))
+    park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     logged_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     user = db.relationship('User', backref=db.backref('favorites'))
 
-    popos = db.relationship('Popos', backref=db.backref('favorites'))
-    posm = db.relationship('Posm', backref=db.backref('favorites'))
+    park = db.relationship('Park', backref=db.backref('favorites'))
 
 
     def __repr__(self):
         """Define how model displays."""
 
-        return "<User user_id: {}, favorite: {} popos/{} posm>".format(self.user, self.popos, self.posm)
+        return "<User user_id: {}, park_id: {}, park_type: {}>".format(self.user, self.park_id, self.park.type)
 
 
 ##############################################################################
