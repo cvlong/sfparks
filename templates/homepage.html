@@ -50,7 +50,6 @@ var map = new mapboxgl.Map({
     // toggle with? mapbox://styles/mapbox/satellite-streets-v9
     center: [-122.431, 37.773],
     zoom: 12.5
-    // maxBounds: bounds
 });
 
 // Disable map rotation using right click + drag
@@ -60,8 +59,26 @@ map.dragRotate.disable();
 map.touchZoomRotate.disableRotation();
 
 
-var popos_markers = {{ popos | safe }};  // | safe to disable HTML autoescape
-var posm_markers = {{ posm | safe }};
+var park_markers = {{ parks | safe }}; // '| safe' to disable HTML autoescape
+
+// popos and posm data sources differentiated in properties: park_tye
+// separate both data sources into two diff map sources & layers
+
+var popos_markers;
+var posm_markers;
+
+park_markers.features.forEach(function(layer) {
+    if (layer.feature.properties.park_type == 'popos') {
+        return popos_markers
+    }
+});
+
+park_markers.features.forEach(function(layer) {
+    if (layer.feature.properties.park_type == 'posm') {
+        return posm_markers
+    }
+});
+
 
 
 map.on('load', function () {
@@ -157,7 +174,7 @@ map.on('load', function () {
 // Fit map to posm_markers boundary, since they are the most spread out
 var bounds = new mapboxgl.LngLatBounds();
 
-posm_markers.features.forEach(function(feature) {
+park_markers.features.forEach(function(feature) {
     bounds.extend(feature.geometry.coordinates);
 });
 
@@ -218,18 +235,30 @@ map.on('mousemove', function(e) {
     var feature = features[0];
     // Populate the popup and set its coordinates based on the feature found.
     popup.setLngLat(feature.geometry.coordinates)
-        .setHTML("<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class='favorite-btn' onclick='addToFavorites(" + feature.properties.id + ",\"" + feature.properties.type + "\")'>&hearts; Favorite</button></div>")
+        .setHTML("<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class='favorite-btn' onclick='addToFavorites(" + feature.properties.id + ")'>&hearts; Favorite</button></div>")
         .addTo(map);
 
 });
 // end popup boxes
 
-function addToFavorites (id, type) {
+//property in geojson obj about whether it's favorited or not, then use that property to determine the button class in the popup
+// [this is for things favorited before loading the page]
+
+//can we add a property to a geojson object within a map after the map has been displayed
+//if so, then use the button class property
+
+//if not, then maintain a list of buttons that are favorites
+//start that from the server - assigning to a js variable
+//then manage the list in addToFavorites
+//then access the list in the btn class - function that returns the class based on whether or not it's in the list
+
+
+function addToFavorites (id) {
     if ($('.favorite-btn#' + id).hasClass('favorite')) {
-        $.post('/remove-from-favorites.json', {'id': id, 'type': type}, removeFromFavorites);
+        $.post('/remove-from-favorites.json', {'id': id}, removeFromFavorites);
     }
     else {
-        $.post('/add-to-favorites.json', {'id': id, 'type': type}, addToFavoritesSuccess);
+        $.post('/add-to-favorites.json', {'id': id}, addToFavoritesSuccess);
     }
 }
 

@@ -41,9 +41,10 @@ class Park(db.Model):
                 "id": self.park_id,
                 "type": self.park_type,
                 "name": self.name,
-                "address": self.address, # FOR POPOS
+                # "address": self.address, # FOR POPOS
                 "marker-symbol": None,
                 "routing_time": None,
+                "favorite": None,
                 }
         }
 

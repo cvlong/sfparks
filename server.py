@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from jinja2 import StrictUndefined
 import json
 from geojson import Feature, Point, FeatureCollection
-from model import db, connect_to_db, User, Popos, Posm
+from model import db, connect_to_db, User, Park, Popos, Posm
 from geofunctions import geocode_location, get_routing_times
 from mappingfunctions import find_close_parks, add_routing_time, make_feature_coll
 
@@ -21,17 +21,19 @@ app.jinja_env.undefined = StrictUndefined
 
 @app.route('/')
 def index():
-    """Homepage; render SF parks."""
+    """Homepage; render all SF parks."""
 
-    popos = Popos.query.all()
-    posm = Posm.query.all()
+    parks = Park.query.all()
+    parks = make_feature_coll(parks)
 
-    popos = make_feature_coll(popos)
-    posm = make_feature_coll(posm)
+    # popos = Park.query.filter(Park.park_type=='popos').all()
+    # posm = Park.query.filter(Park.park_type=='posm').all()
+
+    # popos = make_feature_coll(popos)
+    # posm = make_feature_coll(posm)
 
     return render_template('homepage.html',
-                            popos=popos,
-                            posm=posm)
+                            parks=parks)
 
 
 @app.route('/current-location.json', methods=['POST'])
