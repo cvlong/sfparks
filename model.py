@@ -27,26 +27,27 @@ class Park(db.Model):
 
     def create_geojson_object(self):
         """Creates GeoJSON object for park data."""
-
-        # if self.park_type == "popos":
-        #     then marker-symbol==monument, etc.
         
+        # result_of_fav_records = ...query.pne()
+
         geojson_obj = {
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [self.longitude, self.latitude]
+            'type': 'Feature',
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [self.longitude, self.latitude]
             },
-            "properties": {
-                "id": self.park_id,
-                "type": self.park_type,
-                "name": self.name,
-                # "address": self.address, # FOR POPOS
-                "marker-symbol": None,
-                "routing_time": None,
-                "favorite": None,
+            'properties': {
+                'id': self.park_id,
+                'type': self.park_type,
+                'name': self.name,
+                'marker-symbol': None,
+                'routing_time': None
+                # 'favorite': var,
                 }
         }
+
+        # if self.popos.address:
+        #     geojson_obj['properties']['address'] = self.popos.address
 
         return geojson_obj
     

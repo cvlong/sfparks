@@ -16,12 +16,11 @@ def make_feature_coll(parks):
 def find_close_parks(origin, time, routing, parks):
     """Create a dictionary with park objects that correspond to the distance radius heuristic.
 
-    Calculate the straight-line distance from the origin to each park location.
-    If the distance is within the bounding box heuristic, then add the park ID
-    and park object to the close_parks dictionary.
+    Calculate the straight-line distance from the origin to each park location to
+    determine whether the distance is within the bounding box heuristic.
     """
 
-    close_parks = {} # KEY park_id : VALUE park object
+    close_parks = {}
 
     for park in parks:
         dist = find_distance((origin.latitude, origin.longitude), (park.latitude, park.longitude))
@@ -35,9 +34,9 @@ def find_appx_dist(time, routing):
     """Approximate distance corresponding to bounding radius heuristic based on average routing speeds."""
 
     if routing == 'walking':
-        appx_dist = int(time) * 0.06  # Average walking pace of 4 mph
+        appx_dist = int(time) * 0.06  # average walking pace of 4 mph
     elif routing == 'cycling':
-        appx_dist = int(time) * 0.2  # Average cycling pace of 12 mph
+        appx_dist = int(time) * 0.2  # average cycling pace of 12 mph
 
     return appx_dist
 

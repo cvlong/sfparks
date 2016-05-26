@@ -26,12 +26,6 @@ def index():
     parks = Park.query.all()
     parks = make_feature_coll(parks)
 
-    # popos = Park.query.filter(Park.park_type=='popos').all()
-    # posm = Park.query.filter(Park.park_type=='posm').all()
-
-    # popos = make_feature_coll(popos)
-    # posm = make_feature_coll(posm)
-
     return render_template('homepage.html',
                             parks=parks)
 
@@ -46,7 +40,7 @@ def get_current_location():
     return jsonify(status='success', latitude=latitude, longitude=longitude)
 
 
-# RETURN ALL OF HE MARKERS IN JSON
+# RETURN ALL OF THE MARKERS IN JSON
 # MARKERS: KEY, VALUE: ALL MARKERS
 
 
@@ -56,9 +50,6 @@ def query_parks():
     
     origin = request.args.get('origin')
     time = request.args.get('time')
-    # routing = 'walking' # hardcoding for now
-                        # TODO: incorporate routing into query params
-
     routing = request.args.get('routing')
 
     # user_id = session.get('user_id')
@@ -68,13 +59,11 @@ def query_parks():
     #     favorites = Favorite.query.filter_by(user_id=user_id).all()
 
 
-    # Geocode user input; origin is an instance of named tuple
+    # Geocode user input; var origin is an instance of a named tuple
     origin = geocode_location(origin)
 
     # Get all park objects in database
-    popos = Popos.query.all()
-    posm = Posm.query.all()
-    parks = popos + posm
+    parks = Park.query.all()
 
     # Create a dictionary containing park objects within the bounding radius heuristic
     close_parks = find_close_parks(origin, time, routing, parks)
@@ -89,8 +78,8 @@ def query_parks():
 
     # Create list of GeoJSON objects for get_routing_times argument
     routing_params = [geojson_origin] + geojson_destinations
-        # TODO .insert to list
-        # Can these be put in as two separate lists?
+        # TODO: try .insert to list (but don't want to change geojson_destinations to use later)
+        # Can add_rounting_times func take these params as two separate lists?
     
     routing_times = get_routing_times(routing_params, routing)
     # distance matrix (in seconds)

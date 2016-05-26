@@ -37,8 +37,8 @@
     </div>
 
 
-    <nav id="menu"></nav>
-    <div id='map'></div>
+    <div id='map' class='home-map'></div>
+    <nav id='menu' class='toggle-menu'></nav>
 
 <!-- Could move scripts to a separate JS file, then link to it here: src="/static, ETC" -->
 
@@ -48,7 +48,7 @@ var map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v9',
     // toggle with? mapbox://styles/mapbox/satellite-streets-v9
-    center: [-122.431, 37.773],
+    center: [-122.431, 37.773], // center of SF
     zoom: 12.5
 });
 
@@ -61,115 +61,177 @@ map.touchZoomRotate.disableRotation();
 
 var park_markers = {{ parks | safe }}; // '| safe' to disable HTML autoescape
 
-// popos and posm data sources differentiated in properties: park_tye
-// separate both data sources into two diff map sources & layers
 
-var popos_markers;
-var posm_markers;
+// Add POPOS data as source rather than layer? =================================
+// var popos_markers = park_markers.features.map(function(source) {
+//     if (source.features.properties.type == 'popos') {
+//         return source;
+//     }
+// });
 
-park_markers.features.forEach(function(layer) {
-    if (layer.feature.properties.park_type == 'popos') {
-        return popos_markers
-    }
-});
+// map.getSource('popos_markers').setData(popos_markers);
+// ============================================================================>
 
-park_markers.features.forEach(function(layer) {
-    if (layer.feature.properties.park_type == 'posm') {
-        return posm_markers
-    }
-});
 
+// var popos_markers = park_markers.features.map(function(layer) {
+//     if (layer.feature.properties.park_type == 'popos') {
+//         return layer;
+//     }
+// });
+
+// var posm_markers = park_markers.features.map(function(layer) {
+//     if (layer.feature.properties.park_type == 'posm') {
+//         return layer;
+//     }
+// });
 
 
 map.on('load', function () {
     
-    // Add POPOS marker data as a new GeoJSON source.
-    map.addSource("popos_markers", {
+    // Add park marker data as a new GeoJSON source.
+    map.addSource("park_markers", {
         "type": "geojson",
-        "data":  popos_markers,
-        "cluster": true,
-        "clusterMaxZoom": 14, // Max zoom to cluster points on
-        "clusterRadius": 23 // Radius of each cluster when clustering points
+        "data":  park_markers
     });
 
-    popos_markers.features.forEach(function(feature) {
-        feature.properties["marker-symbol"] = "garden"
-    });
 
     // Add a layer showing the POPOS markers.
     map.addLayer({
-        "id": "popos_markers",
-        "type": "symbol",
-        "source": "popos_markers",
-        "layout": {
-            "icon-image": "{marker-symbol}-15",
-            'visibility': 'visible' // not sure if this is necessary
+        "id": "popos_markers", // unique layer name
+        "type": "circle", // how the layer is rendered (symbol or circle)
+        "source": "park_markers", // source data
+        "filter": ["==", 'type', 'popos'], // specifies conditions on source features
+        "layout": { // defines how layer data is passed to the GPU; can link to
+            // this layout in another layer with the 'ref' layer property to decrease
+            // processing time and memory
+            'visibility': 'visible' 
+        },
+        'paint': {
+            'circle-radius': 10, // units in pixels
+            'circle-color': "#ff0000",
+            'circle-opacity': {
+                "stops": [[3, 0.2], [15,0.8]] // for interpolated values b/w 0.2 - 0.8
+            }
+        },
+        'paint.popos': {
+            // 'xxxx' // class-specific paint properties
         }
-    });
-
-    // Display the POPOS data in three layers, each filtered to a range of
-    // count values with a different fill color.
-    var layers = [
-        [20, '#f28cb1'],
-        [10, '#f1f075'],
-        [0, '#51bbd6']
-    ];
-
-    layers.forEach(function (layer, i) {
-        map.addLayer({
-            "id": "cluster-" + i,
-            "type": "circle",
-            "source": "popos_markers",
-            "paint": {
-                "circle-color": layer[1],
-                "circle-radius": 14
-            },
-            "filter": i == 0 ?
-                [">=", "point_count", layer[0]] :
-                ["all",
-                    [">=", "point_count", layer[0]],
-                    ["<", "point_count", layers[i - 1][0]]]
-        });
-    });
-
-    // Add a layer for the POPOS clusters' count labels.
-    map.addLayer({
-        "id": "cluster-count",
-        "type": "symbol",
-        "source": "popos_markers",
-        "layout": {
-            "text-field": "{point_count}",
-            "text-font": [
-                    "DIN Offc Pro Medium",
-                    "Arial Unicode MS Bold"
-                ],
-            "text-size": 12
-        }
-    });
-
-
-    // Add POSM marker data as a new GeoJSON source.
-    map.addSource("posm_markers", {
-        "type": "geojson",
-        "data":  posm_markers
-    });
-
-    posm_markers.features.forEach(function(feature) {
-        feature.properties["marker-symbol"] = "monument"
     });
 
     // Add a layer showing the POSM markers.
     map.addLayer({
         "id": "posm_markers",
-        "type": "symbol",
-        "source": "posm_markers",
+        "type": "circle",
+        "source": "park_markers",
+        "filter": ["==", 'type', 'posm'],
         "layout": {
-            "icon-image": "{marker-symbol}-15",
-            'visibility': 'visible' // not sure if this is necessary
+            'visibility': 'visible' 
+        },
+        'paint': { 
+            'circle-radius': 10, // units in pixels
+            'circle-color': '#1aa3ff',
+            'circle-opacity': {
+                "stops": [[3, 0.2], [15,0.8]] // for interpolated values b/w 0.2 - 0.8
+            }
+        },
+        'paint.posm': {
+            // 'xxxx' // class-specific paint properties
         }
     });
-});
+})
 
+
+
+// // Only keep this section if it's possible to add POPOS + POSM data with 
+// // .addSource() rather than with .addLayer() ================================
+
+//     // Add POPOS marker data as a new GeoJSON source.
+//     map.addSource("popos_markers", {
+//         "type": "geojson",
+//         "data":  popos_markers,
+//         "cluster": true,
+//         "clusterMaxZoom": 14, // Max zoom to cluster points on
+//         "clusterRadius": 23 // Radius of each cluster when clustering points
+//     });
+
+//     popos_markers.features.forEach(function(feature) {
+//         feature.properties["marker-symbol"] = "garden"
+//     });
+
+//     // Add a layer showing the POPOS markers.
+//     map.addLayer({
+//         "id": "popos_markers",
+//         "type": "symbol",
+//         "source": "popos_markers",
+//         "layout": {
+//             "icon-image": "{marker-symbol}-15",
+//             'visibility': 'visible' // not sure if this is necessary
+//         }
+//     });
+
+//     // Display the POPOS data in three layers, each filtered to a range of
+//     // count values with a different fill color.
+//     var layers = [
+//         [20, '#f28cb1'],
+//         [10, '#f1f075'],
+//         [0, '#51bbd6']
+//     ];
+
+//     layers.forEach(function (layer, i) {
+//         map.addLayer({
+//             "id": "cluster-" + i,
+//             "type": "circle",
+//             "source": "popos_markers",
+//             "paint": {
+//                 "circle-color": layer[1],
+//                 "circle-radius": 14
+//             },
+//             "filter": i == 0 ?
+//                 [">=", "point_count", layer[0]] :
+//                 ["all",
+//                     [">=", "point_count", layer[0]],
+//                     ["<", "point_count", layers[i - 1][0]]]
+//         });
+//     });
+
+//     // Add a layer for the POPOS clusters' count labels.
+//     map.addLayer({
+//         "id": "cluster-count",
+//         "type": "symbol",
+//         "source": "popos_markers",
+//         "layout": {
+//             "text-field": "{point_count}",
+//             "text-font": [
+//                     "DIN Offc Pro Medium",
+//                     "Arial Unicode MS Bold"
+//                 ],
+//             "text-size": 12
+//         }
+//     });
+
+
+//     // Add POSM marker data as a new GeoJSON source.
+//     map.addSource("posm_markers", {
+//         "type": "geojson",
+//         "data":  posm_markers
+//     });
+
+//     posm_markers.features.forEach(function(feature) {
+//         feature.properties["marker-symbol"] = "monument"
+//     });
+
+//     // Add a layer showing the POSM markers.
+//     map.addLayer({
+//         "id": "posm_markers",
+//         "type": "symbol",
+//         "source": "posm_markers",
+//         "layout": {
+//             "icon-image": "{marker-symbol}-15",
+//             'visibility': 'visible' // not sure if this is necessary
+//         }
+//     });
+// });
+// ============================================================================>
 
 // Fit map to posm_markers boundary, since they are the most spread out
 var bounds = new mapboxgl.LngLatBounds();
@@ -222,6 +284,7 @@ var popup = new mapboxgl.Popup({
 
 // Change the cursor style as a UI indicator.
 map.on('mousemove', function(e) {
+    // Find all rendered features from the given layers.
     var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers', 'posm_markers'] });
     
     // Indicate that the symbols are clickable by changing the cursor style to 'pointer'.
@@ -235,10 +298,13 @@ map.on('mousemove', function(e) {
     var feature = features[0];
     // Populate the popup and set its coordinates based on the feature found.
     popup.setLngLat(feature.geometry.coordinates)
-        .setHTML("<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class='favorite-btn' onclick='addToFavorites(" + feature.properties.id + ")'>&hearts; Favorite</button></div>")
+        .setHTML("<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class='favorite-btn' class=" + feature.properties.favorite + " onclick='addToFavorites(" + feature.properties.id + ")'>&hearts; Favorite</button></div>")
         .addTo(map);
 
 });
+
+//then update favorite/not_favorite on geojson object
+
 // end popup boxes
 
 //property in geojson obj about whether it's favorited or not, then use that property to determine the button class in the popup
@@ -252,6 +318,13 @@ map.on('mousemove', function(e) {
 //then manage the list in addToFavorites
 //then access the list in the btn class - function that returns the class based on whether or not it's in the list
 
+//LAUREN:
+//there's no way for the button to remember it's a favorite
+//so modify geojson by directly accessing geojson popos.properties....favorite - then toggle to true
+//when creating the popup, add in-line css, or add a class whether feature.properties.favorite is true
+//could also set a diff marker color or marker icon if it's a favorite
+//so can change style based on this underlying 
+//then another layer filtering all not favoritedthen another layer with the favorites
 
 function addToFavorites (id) {
     if ($('.favorite-btn#' + id).hasClass('favorite')) {
@@ -268,9 +341,9 @@ function addToFavoritesSuccess(result) {
     $('.favorite-btn#' + id).addClass('favorite');
 }
 
-function removeFromFavorites(result) {
+// function removeFromFavorites(result) {
 
-}
+// }
 //creating a new box every time, not checking whether that thing has been favorited
 //every time it's pulled up - is this item favorited? check. then if not, show not red button
 
@@ -299,8 +372,10 @@ $('#use-current-location').on('click', findCurrentLocation);
 var currentLatitude;
 var currentLongitude;
 
+var output = document.getElementById("output");
+
+
 function findCurrentLocation(evt) {
-    var output = document.getElementById("output");
 
     if (!navigator.geolocation) {
         output.innerHTML = "<p>Geolocation is not supported by your browser</p>";
@@ -322,7 +397,7 @@ function findCurrentLocation(evt) {
     output.innerHTML = "<p>Locating…</p>";
 
     navigator.geolocation.getCurrentPosition(success, error);
-};
+}
 
 
 function sendLatLngSuccess(result) {
@@ -330,6 +405,7 @@ function sendLatLngSuccess(result) {
     console.log(result.latitude);
     $('#field-origin').html(newLatLng);
 }
+
 
 
 // ON clickprevents form submission, finds current location, then go to route w/o using Ajax
