@@ -62,28 +62,20 @@ map.touchZoomRotate.disableRotation();
 var park_markers = {{ parks | safe }}; // '| safe' to disable HTML autoescape
 
 
-// Add POPOS data as source rather than layer? =================================
-// var popos_markers = park_markers.features.map(function(source) {
-//     if (source.features.properties.type == 'popos') {
-//         return source;
-//     }
+// Add POPOS + POSM data as source rather than layer ===========================
+// var popos_markers = park_markers.features.filter(function(source) {
+//     return source.features.properties.type === 'popos';
+// });
+
+// console.log(popos_markers)
+
+// var posm_markers = park_markers.features.filter(function(source) {
+//     return source.features.properties.type === 'posm';
 // });
 
 // map.getSource('popos_markers').setData(popos_markers);
 // ============================================================================>
 
-
-// var popos_markers = park_markers.features.map(function(layer) {
-//     if (layer.feature.properties.park_type == 'popos') {
-//         return layer;
-//     }
-// });
-
-// var posm_markers = park_markers.features.map(function(layer) {
-//     if (layer.feature.properties.park_type == 'posm') {
-//         return layer;
-//     }
-// });
 
 
 map.on('load', function () {
@@ -94,6 +86,7 @@ map.on('load', function () {
         "data":  park_markers
     });
 
+// Adding POPOS and POSM data as layers of the park_markers source==============
 
     // Add a layer showing the POPOS markers.
     map.addLayer({
@@ -139,7 +132,7 @@ map.on('load', function () {
         }
     });
 })
-
+//=============================================================================>
 
 
 // // Only keep this section if it's possible to add POPOS + POSM data with 
@@ -272,7 +265,7 @@ function addLayer(name, id) {
     var layers = document.getElementById('menu');
     layers.appendChild(link);
 }
-// end toggle layers
+// End toggle layers.
 
 
 // Create a popup info box on hover, but don't add it to the map yet.
@@ -297,15 +290,62 @@ map.on('mousemove', function(e) {
 
     var feature = features[0];
     // Populate the popup and set its coordinates based on the feature found.
-    popup.setLngLat(feature.geometry.coordinates)
-        .setHTML("<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class='favorite-btn' class=" + feature.properties.favorite + " onclick='addToFavorites(" + feature.properties.id + ")'>&hearts; Favorite</button></div>")
-        .addTo(map);
+    
+    var htmlString = "<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class='favorite-btn";
+    if(feature.properties.favorite){
+        htmlString += "favorite";
+    }
 
+    htmlString += "' onclick='updateFavorite(" + feature.properties.id + ")'>&hearts; Favorite</button></div>";
+
+    popup.setLngLat(feature.geometry.coordinates)
+        .setHTML(htmlString)
+        .addTo(map);
 });
+// End popup boxes.
+
+
+//not getting new info from db, just changing color
+//resassign html when you click fav say its fave. instead of lookinbg in the db set it as fave
+
+// force the css to look like it has a feature
+// click favorites capture the html of that window class.html(returns html for window with faves color) -- then reassign that window to the markert
+// then next time it already knows its a fave
+
+// on load things should show up as css favorited
+
+
+function updateFavorite(feature, id) {
+    console.log(feature);
+    console.log(id);
+    $('.favorite-btn#' + id).toggleClass('favorite', function (){
+        $.post('/toggle-favorites.json', {'id': id}, toggleFavoritesSuccess);
+
+        // Also toggle geojson element to False
+        //     feature.properties.favorite = False;
+        
+    });
+}
+
+
+function toggleFavoritesSuccess(result) {
+    console.log(result.status);
+    var id = result.id;
+    console.log(id);
+}
+
+
+//LAUREN:
+//there's no way for the button to remember it's a favorite
+//so modify geojson by directly accessing geojson popos.properties....favorite - then toggle to true
+//when creating the popup, add in-line css, or add a class whether feature.properties.favorite is true
+//could also set a diff marker color or marker icon if it's a favorite
+//so can change style based on this underlying 
+//then another layer filtering all not favoritedthen another layer with the favorites
+
 
 //then update favorite/not_favorite on geojson object
 
-// end popup boxes
 
 //property in geojson obj about whether it's favorited or not, then use that property to determine the button class in the popup
 // [this is for things favorited before loading the page]
@@ -318,55 +358,22 @@ map.on('mousemove', function(e) {
 //then manage the list in addToFavorites
 //then access the list in the btn class - function that returns the class based on whether or not it's in the list
 
-//LAUREN:
-//there's no way for the button to remember it's a favorite
-//so modify geojson by directly accessing geojson popos.properties....favorite - then toggle to true
-//when creating the popup, add in-line css, or add a class whether feature.properties.favorite is true
-//could also set a diff marker color or marker icon if it's a favorite
-//so can change style based on this underlying 
-//then another layer filtering all not favoritedthen another layer with the favorites
 
-function addToFavorites (id) {
-    if ($('.favorite-btn#' + id).hasClass('favorite')) {
-        $.post('/remove-from-favorites.json', {'id': id}, removeFromFavorites);
-    }
-    else {
-        $.post('/add-to-favorites.json', {'id': id}, addToFavoritesSuccess);
-    }
-}
 
-function addToFavoritesSuccess(result) {
-    console.log(result.status);
-    var id = result.id;
-    $('.favorite-btn#' + id).addClass('favorite');
-}
 
-// function removeFromFavorites(result) {
 
-// }
+
+
+
 //creating a new box every time, not checking whether that thing has been favorited
 //every time it's pulled up - is this item favorited? check. then if not, show not red button
 
 //OR when someone favorites it, make an ajax call to add to the session - some way to itentify in the session what has been favorited
 //List of favorited park ids, or 
 
-// // $('.favorite-btn').on('click', addToFavorites);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Collect user's current location vis browser
+// Collect user's current location via browser
 $('#use-current-location').on('click', findCurrentLocation);
 
 var currentLatitude;
@@ -403,7 +410,7 @@ function findCurrentLocation(evt) {
 function sendLatLngSuccess(result) {
     console.log(result.status);
     console.log(result.latitude);
-    $('#field-origin').html(newLatLng);
+    // $('#field-origin').html(newLatLng);
 }
 
 
