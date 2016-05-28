@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from jinja2 import StrictUndefined
 import json
 from geojson import Feature, Point, FeatureCollection
-from model import db, connect_to_db, User, Park, Popos, Posm
+from model import db, connect_to_db, Park, Popos, Posm, User, Favorite
 from geofunctions import geocode_location, get_routing_times
 from mappingfunctions import find_close_parks, add_routing_time, make_feature_coll
 
@@ -23,8 +23,17 @@ app.jinja_env.undefined = StrictUndefined
 def index():
     """Homepage; render all SF parks."""
 
+    # If the user is logged in, pass their user ID into make_feature_coll()
+    # to add their favorites to the geojson park objects rendered on page load.
+    user_id = session.get('user')
+
+    # if user_id:
+        # Get user object
+        # user = User.query.filter_by(user_id = user_id).first()
+        # already have user_id from the session
+        
     parks = Park.query.all()
-    parks = make_feature_coll(parks)
+    parks = make_feature_coll(parks, user_id)
 
     return render_template('homepage.html',
                             parks=parks)
@@ -40,10 +49,6 @@ def get_current_location():
     return jsonify(status='success', latitude=latitude, longitude=longitude)
 
 
-# RETURN ALL OF THE MARKERS IN JSON
-# MARKERS: KEY, VALUE: ALL MARKERS
-
-
 @app.route('/query', methods=['GET'])
 def query_parks():
     """Return results from users' query based on origin location, time profile, and routing profile."""
@@ -52,14 +57,11 @@ def query_parks():
     time = request.args.get('time')
     routing = request.args.get('routing')
 
-    # user_id = session.get('user_id')
-
-    # # if the user is logged in, show favorites
-    # if user_id:
-    #     favorites = Favorite.query.filter_by(user_id=user_id).all()
 
 
-    # Geocode user input; var origin is an instance of a named tuple
+
+
+    # Geocode user input; variable origin is an instance of a named tuple
     origin = geocode_location(origin)
 
     # Get all park objects in database
@@ -91,6 +93,7 @@ def query_parks():
 
 
     return render_template('query.html',
+                            favorite_parks=favorite_parks,
                             origin=origin,
                             time=time,
                             # close_parks=close_parks,
@@ -99,94 +102,69 @@ def query_parks():
                             # routing_times=routing_times,
                             markers=markers)
 
-    
 
+# @app.route('/distances.json', methods=['POST'])
+# def calc_dist():
 
+#     grid = request.form.get('grid')
 
+#     print grid
 
-#run server in interactive mode
-# python -i server.py
-# control C (just once)
-# stops the script
-# then can call functions
+@app.route('/toggle-favorites.json', methods=['POST'])
+def toggle_favorites():
+    """Handle adding/removing favorite parks from favorite button.
 
-# @app.route('/favorites')
-# # Add individual <user> to URL?
-# # def show favorites:
-#     """Display user's favorite parks."""
-
-#     # user_id = session.get("user_id")
-    
-#     # if user_id:
-#         # favorites = Favorite.query.filter_by(user_id=user_id).all()
-
-#     # return render_template('favorites.html',
-#     #                         favorites=favorites)
-
-
-@app.route('/add-to-favorites.json', methods=['POST'])
-def add_to_favorites():
-    """Add park to user's favorites.
-
-    If the user is logged in, add to favorite to the database. Otherwise,
-    add the favorited park to the session.
+    If the user is logged in, add or remove favorites in the database. Otherwise,
+    add or remove favorites in the session.
     """
 
     park_id = request.form.get('id')
-    park_type = request.form.get('type')
-
     print park_id
-    print park_type
-
- 
-    user = session.get("user_id")
-    """
-    # if user is logged in, add park to the favorites db table
+    
+    user = session.get('user')
+    
     if user:
-        
-        if park_type == "popos":
-            # instantiate a favorite object with the information provided
-            favorite = Favorite(popos_id=park_id, user_id=user_id)
-        
-        elif park_type == "posm":
-            # instantiate a favorite object with the information provided
-            favorite = Favorite(posm_id=park_id, user_id=user_id)
+        # First check whether user has favorited park before.
+        favorited = Favorite.query.filter(Favorite.park_id == park_id, Favorite.user_id == user).first()
 
-    # add favorite to db session and commit to database
-    db.session.add(favorite)
-    db.session.commit()
+        if favorited:
+            # Unfavorite park by setting favorite to False
+            favorite.favorite = False
+            db.session.commit()
 
-    print "Favorite committed to DB"
-    # flash("") # No flash message for now because JS event handler changes the UI
-    """
-    # # see if user has favorited park before
-    # Favorite.query.filter(Favorite.popos_id == park_id).first()
+            return jsonify(status='successfully removed favorite', id=park_id)
 
-    
-    # else:
+        else:
+            # Instantiate a favorite object with the information provided
+            favorite = Favorite(park_id=park_id, user=user_id)
+
+            # add favorite to db session and commit to database
+            db.session.add(favorite)
+            db.session.commit()
+
+            return jsonify(status='successfully added favorite', id=park_id)
+
+    else:
         # session['user']
+        # add favorites to session so they're saved as red until reload
+        pass
 
-    return jsonify(status='successfully added favorite', id=park_id, type=park_type) #update this)
-
-
-@app.route('/remove-from-favorites.json', methods=['POST'])
-def remove_from_favorites():
-    """Remove park from user's favorites.
-
-    xxx
-    """
-
-    park_id = request.form.get('id')
-    park_type = request.form.get('type')
-
-    print park_id
-    print park_type
+        return jsonify(status='successfully added favorite to session', id=park_id)
 
 
-    #REMOVE FROM DATABASE
+@app.route('/favorites')
+def return_favorites():
+    """Display user's favorite parks."""
 
-    return jsonify(status='successfully removed favorite', id=park_id, type=park_type)
+    # Add individual <user> to URL?
 
+    user = session.get(user)
+    
+    if user:
+        favorites = Favorite.query.filter_by(user_id=user_id).all()
+
+    return render_template('favorites.html',
+                            favorites=favorites)
 
 
 @app.route('/login', methods=['POST']) #note: took out 'GET' method

@@ -22,32 +22,34 @@ class Park(db.Model):
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
 
-    popos = db.relationship('Popos', backref=db.backref('parks'))
-    posm = db.relationship('Posm', backref=db.backref('parks'))
 
-    def create_geojson_object(self):
+    def create_geojson_object(self, user_id=None):
         """Creates GeoJSON object for park data."""
         
-        # result_of_fav_records = ...query.pne()
-
         geojson_obj = {
             'type': 'Feature',
             'geometry': {
                 'type': 'Point',
-                'coordinates': [self.longitude, self.latitude]
+                'coordinates': [self.longitude,
+                                self.latitude]
             },
             'properties': {
                 'id': self.park_id,
                 'type': self.park_type,
                 'name': self.name,
+                # 'address': None, set for POSM?
                 'marker-symbol': None,
-                'routing_time': None
-                # 'favorite': var,
+                'routing_time': None,
+                'favorite': False
                 }
         }
 
-        # if self.popos.address:
-        #     geojson_obj['properties']['address'] = self.popos.address
+        # If the user is logged in, update the GeoJSON object with their favorites.
+        if user_id:
+            fav_query_result = Favorite.query.filter(Favorite.fav_park_id == self.park_id,
+                                                     Favorite.fav_user_id == user_id).first()
+            if fav_query_result:
+                geojson_obj['properties']['favorite'] = True
 
         return geojson_obj
     
@@ -68,7 +70,7 @@ class Park(db.Model):
 
 
 class Popos(db.Model):
-    """Privately-Owned Public Open Space on SFparks website."""
+    """Privately-Owned Public Open Space data on SFparks website."""
 
     __tablename__ = "popos"
 
@@ -77,11 +79,14 @@ class Popos(db.Model):
     address = db.Column(db.String(150), nullable=False)
     popos_type = db.Column(db.String(100))
 
+    park = db.relationship('Park', backref=db.backref('popos'))
+
 
     def __repr__(self):
         """Define how model displays."""
 
-        return "<park_id: {}, address: {}>".format(self.park_id, self.address)
+        return "<park_id: {}, address: {}>".format(self.park_id,
+                                                   self.address)
 
 
 class Posm(db.Model):
@@ -95,11 +100,14 @@ class Posm(db.Model):
     acreage = db.Column(db.Float)
     zipcode = db.Column(db.Integer)
 
+    park = db.relationship('Park', backref=db.backref('posm'))
+
 
     def __repr__(self):
         """Define how model displays."""
 
-        return "<park_id: {}, name: {}>".format(self.park_id, self.parks.name)
+        return "<park_id: {}, name: {}>".format(self.park_id,
+                                                self.parks.name)
 
 
 class User(db.Model):
@@ -112,10 +120,12 @@ class User(db.Model):
     password = db.Column(db.String(20), nullable=False)
     # TODO: add user's home, or saved starting location
 
+
     def __repr__(self):
         """Define how model displays."""
 
-        return "<User user_id: {}, email: {}>".format(self.user_id, self.email)
+        return "<User user_id: {}, email: {}>".format(self.user_id,
+                                                      self.email)
 
     
 class Favorite(db.Model):
@@ -124,19 +134,26 @@ class Favorite(db.Model):
     __tablename__ = "favorites"
 
     fav_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
-    logged_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    favorite = db.Column(db.Boolean, default=False)
+    fav_park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
+    fav_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    logged_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user = db.relationship('User', backref=db.backref('favorites'))
+
+    # Define realtionship to PARKS (one:many) // one PARK has many FAVORITES
+    # So the *fav_park_id* column of the *favorites* table refers 
+    # to the *park_id* column of the *parks* table:
 
     park = db.relationship('Park', backref=db.backref('favorites'))
+    user = db.relationship('User', backref=db.backref('favorites'))
 
 
     def __repr__(self):
         """Define how model displays."""
 
-        return "<User user_id: {}, park_id: {}, park_type: {}>".format(self.user, self.park_id, self.park.type)
+        return "<Favorite: {}, User user_id: {}, Park park_id: {}>".format(self.favorite,
+                                                                           self.fav_user_id,
+                                                                           self.fav_park_id)
 
 
 ##############################################################################

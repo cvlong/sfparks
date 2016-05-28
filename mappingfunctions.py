@@ -5,13 +5,24 @@ from geofunctions import find_distance
 
 
 
-def make_feature_coll(parks):
-    """"""
+def make_feature_coll(parks, user_id):
+    """Create a GeoJSON feature collection from a list of park objects."""
 
-    geojson_parks = FeatureCollection([park.create_geojson_object() for park in parks])
+    geojson_parks = FeatureCollection([park.create_geojson_object(user_id) for park in parks])
 
     return json.dumps(geojson_parks)
     
+
+def find_appx_dist(time, routing):
+    """Approximate distance corresponding to bounding radius heuristic based on average routing speeds."""
+
+    if routing == 'walking':
+        appx_dist = int(time) * 0.06  # average walking pace of 4 mph
+    elif routing == 'cycling':
+        appx_dist = int(time) * 0.2  # average cycling pace of 12 mph
+
+    return appx_dist
+
 
 def find_close_parks(origin, time, routing, parks):
     """Create a dictionary with park objects that correspond to the distance radius heuristic.
@@ -28,17 +39,6 @@ def find_close_parks(origin, time, routing, parks):
             close_parks[park.name] = park
 
     return close_parks
-
-
-def find_appx_dist(time, routing):
-    """Approximate distance corresponding to bounding radius heuristic based on average routing speeds."""
-
-    if routing == 'walking':
-        appx_dist = int(time) * 0.06  # average walking pace of 4 mph
-    elif routing == 'cycling':
-        appx_dist = int(time) * 0.2  # average cycling pace of 12 mph
-
-    return appx_dist
 
 
 def add_routing_time(geojson_destinations, routing_times):
