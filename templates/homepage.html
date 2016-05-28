@@ -131,6 +131,25 @@ map.on('load', function () {
             // 'xxxx' // class-specific paint properties
         }
     });
+
+    // Add a layer showing a user's favorites.
+    map.addLayer({
+        "id": "fav-markers",
+        "type": "circle",
+        "source": "park_markers",
+        "filter": ["==", 'favorite', 'True'],
+        "layout": {
+            'visibility': 'visible' 
+        },
+        'paint': { 
+            'circle-radius': 15, // units in pixels
+            'circle-color': '#ff00bf',
+            'circle-opacity': 1.0
+        },
+        'paint.favorites': {
+            // 'xxxx' // class-specific paint properties
+        }
+    });
 })
 //=============================================================================>
 

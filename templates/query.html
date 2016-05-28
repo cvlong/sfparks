@@ -23,6 +23,10 @@
 
     <div id='map'></div>
 
+<!-- HELPER FUNCTION FOR LAT/LNG VERIFICATION -->
+    <pre id='info'></pre>
+
+
 <script>
 
 var origin = {{ geojson_origin | safe }};
@@ -33,9 +37,9 @@ var markers = {{ markers | safe }};
 var map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v9', 
-    center: [origin.geometry.coordinates[0], origin.geometry.coordinates[1]],
+    center: [origin.geometry.coordinates[0], origin.geometry.coordinates[1]]
     // programmatically set center to origin lat/lng
-    zoom: 12.5,
+    // zoom: 12.5,
 });
 
 // Disable map rotation using right click + drag
@@ -45,21 +49,101 @@ map.dragRotate.disable();
 map.touchZoomRotate.disableRotation();
 
 
+// Create a bounding box ('envelope') around the markers
+var enveloped = turf.envelope(markers);
+
+// var resultFeatures = fc.features.concat(enveloped);
+
+var result = { //put the resulting envelope in a geojson format FeatureCollection
+    "type": "FeatureCollection",
+    "features": [enveloped] 
+};
+
+// console.log([enveloped.geometry.coordinates[0][0][0],
+//              enveloped.geometry.coordinates[0][0][1],
+//              enveloped.geometry.coordinates[0][2][0],
+//              enveloped.geometry.coordinates[0][2][1]]
+//             );
+
+// turf.point-grid 
+// has to be in order [minX, minY, maxX, maxY]
+var extent = [enveloped.geometry.coordinates[0][0][0],
+             enveloped.geometry.coordinates[0][0][1],
+             enveloped.geometry.coordinates[0][2][0],
+             enveloped.geometry.coordinates[0][2][1]
+             ];
+             // EX: [-122.40379, 37.78618, -122.394668, 37.79374]
+var cellWidth = 20;
+var units = 'miles';
+
+var grid = turf.pointGrid(extent, cellWidth, units);
+
+console.log(grid)
+
+$.post('/distances.json', {'grid': grid}, sentGridSuccess);
+
+function sentGridSuccess(result) {
+    console.log(result.status);
+}
+
+// find distances to points in the point-grid
+
+
+// var gridCoords = mapboxClient.getDistances([
+//   [-95.4431142, 33.6875431],
+//   [-95.0431142, 33.6875431],
+//   [-95.0431142, 33.0875431],
+//   [-95.0431142, 33.0175431],
+//   [-95.4831142, 33.6875431]
+// ], {
+//   profile: 'walking'
+// }, function(err, results) {
+//   console.log(results);
+// });
+
+
+
+
+
+
 map.on('load', function () {
+    
+    // Add turf data.
+    map.addSource('turf-data', {
+        "type": "geojson",
+        "data": grid
+    });
+
+    // Add turf.
+    map.addLayer({
+        "id": "turf-data",
+        "type": "circle",
+        "source": "turf-data"
+    });
+
+    grid.features.forEach(function (feature) {
+        feature.properties["marker-color"] = "#6BC65F";
+        feature.properties["marker-size"] = "small";
+    });
+
     // Add origin point as a new GeoJSON source.
-    map.addSource('single-point', {
+    map.addSource('origin-point', {
         "type": "geojson",
         "data": origin
     });
 
     // Add a layer showing the origin point.
     map.addLayer({
-        "id": "point",
-        "source": "single-point",
+        "id": "origin-point",
         "type": "circle",
+        "source": "origin-point",
+        "layout": {
+            'visibility': 'visible'
+        },
         "paint": {
-            "circle-radius": 10,
-            "circle-color": "#007cbf"
+            "circle-radius": 12,
+            "circle-color": "#007cbf",
+            "circle-opacity": 0.9
         }
     });
 
@@ -69,17 +153,30 @@ map.on('load', function () {
         "data":  markers
     });
 
-    markers.features.forEach(function(feature) {
-        feature.properties["marker-symbol"] = "garden"
-    });
+    var routing_time = markers.features.map(function (feature) {
+        return feature.properties.routing_time;
+    })
 
     // Add a layer showing the markers.
     map.addLayer({
         "id": "markers",
-        "type": "symbol",
+        "type": "circle",
         "source": "markers",
         "layout": {
-            "icon-image": "{marker-symbol}-15"
+            "visibility": 'visible'
+        },
+        'paint': {
+            'circle-radius': 11,
+            // 'circle-radius': { // interpolate based on routing distance??
+            //     'property': routing_time,
+            //     'stops': [
+            //         [routing_time*0.33, 9],
+            //         [routing_time*0.66, 11],
+            //         [routing_time, 13]
+            //     ]
+            // },
+            'circle-color': '#00b300',
+            'circle-opacity': 0.8
         }
     });
 });
@@ -92,7 +189,11 @@ markers.features.forEach(function(feature) {
 });
 
 map.fitBounds(bounds, {padding: '50'});
-// end fit to bounds
+// End fit to bounds
+
+//
+
+
 
 
 // Add popup info boxes on hover:
@@ -125,23 +226,16 @@ map.on('mousemove', function(e) {
 
 
 
-// // TODO: Add favorite buttons
-// $(function () {
 
-//     function addToFavorites (evt) {
-//         var id = this.id;
-//         $.post('/add-to-favorites', {'id': id}, addToFavoritesSuccess);
-//     }
-
-//     function addToFavoritesSuccess(result) {
-//         console.log(result.status)
-//         var id = result.id
-//         $.('#' + id).css('color', 'red');
-//     }
-
-//     $('.favorite-btn').on('click', addToFavorites);
-
-// });
+// HELPER FUNCTION FOR LAT/LNG VERIFICATION
+map.on('mousemove', function (e) {
+    document.getElementById('info').innerHTML =
+        // e.point is the x, y coordinates of the mousemove event relative
+        // to the top-left corner of the map
+        JSON.stringify(e.point) + '<br />' +
+            // e.lngLat is the longitude, latitude geographical position of the event
+        JSON.stringify(e.lngLat);
+});
     
 
 </script>
