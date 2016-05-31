@@ -40,7 +40,7 @@ class Park(db.Model):
                 # 'address': None, set for POSM?
                 'marker-symbol': None,
                 'routing_time': None,
-                'favorite': False
+                'favorite': 'not_favorite'
                 }
         }
 
@@ -49,7 +49,7 @@ class Park(db.Model):
             fav_query_result = Favorite.query.filter(Favorite.fav_park_id == self.park_id,
                                                      Favorite.fav_user_id == user_id).first()
             if fav_query_result:
-                geojson_obj['properties']['favorite'] = True
+                geojson_obj['properties']['favorite'] = 'favorite'
 
         return geojson_obj
     
@@ -134,7 +134,8 @@ class Favorite(db.Model):
     __tablename__ = "favorites"
 
     fav_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    favorite = db.Column(db.Boolean, default=False)
+    favorite = db.Column(db.Boolean, default=False) 
+        # change default to True?
     fav_park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
     fav_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     logged_at = db.Column(db.DateTime, default=datetime.utcnow)
