@@ -61,6 +61,21 @@ map.touchZoomRotate.disableRotation();
 
 var park_markers = {{ parks | safe }}; // '| safe' to disable HTML autoescape
 
+// var park_markers = {"type": "FeatureCollection", "features": [{"geometry": {"type": "Point", "coordinates": [-122.39891, 37.7884]}, "type": "Feature", "properties": {"name": "555 Mission St", "marker-symbol": null, "routing_time": null, "favorite": false, "type": "popos", "id": 1}}, {"geometry": {"type": "Point", "coordinates": [-122.396, 37.7888]}, "type": "Feature", "properties": {"name": "Foundry Square NE", "marker-symbol": null, "routing_time": null, "favorite": false, "type": "popos", "id": 2}}, {"geometry": {"type": "Point", "coordinates": 
+
+
+
+//var park_markers = JSON.parse(parks)
+
+console.log(park_markers)
+
+
+// park.id or park['features']['properties']['id']
+
+
+
+
+
 
 // Add POPOS + POSM data as source rather than layer ===========================
 // var popos_markers = park_markers.features.filter(function(source) {
@@ -103,7 +118,7 @@ map.on('load', function () {
             'circle-radius': 10, // units in pixels
             'circle-color': "#ff0000",
             'circle-opacity': {
-                "stops": [[3, 0.2], [15,0.8]] // for interpolated values b/w 0.2 - 0.8
+                "stops": [[3, 0.2], [15,0.8]] // interpolate values?
             }
         },
         'paint.popos': {
@@ -124,7 +139,7 @@ map.on('load', function () {
             'circle-radius': 10, // units in pixels
             'circle-color': '#1aa3ff',
             'circle-opacity': {
-                "stops": [[3, 0.2], [15,0.8]] // for interpolated values b/w 0.2 - 0.8
+                "stops": [[3, 0.2], [15,0.8]] // interpolate values based on acreage?
             }
         },
         'paint.posm': {
@@ -132,24 +147,24 @@ map.on('load', function () {
         }
     });
 
-    // Add a layer showing a user's favorites.
-    map.addLayer({
-        "id": "fav-markers",
-        "type": "circle",
-        "source": "park_markers",
-        "filter": ["==", 'favorite', 'True'],
-        "layout": {
-            'visibility': 'visible' 
-        },
-        'paint': { 
-            'circle-radius': 15, // units in pixels
-            'circle-color': '#ff00bf',
-            'circle-opacity': 1.0
-        },
-        'paint.favorites': {
-            // 'xxxx' // class-specific paint properties
-        }
-    });
+    // // Add a layer showing a user's favorites.
+    // map.addLayer({
+    //     "id": "fav-markers",
+    //     "type": "circle",
+    //     "source": "park_markers",
+    //     "filter": ["==", 'favorite', 'True'],
+    //     "layout": {
+    //         'visibility': 'visible' 
+    //     },
+    //     'paint': { 
+    //         'circle-radius': 15, // units in pixels
+    //         'circle-color': '#ff00bf',
+    //         'circle-opacity': 1.0
+    //     },
+    //     'paint.favorites': {
+    //         // 'xxxx' // class-specific paint properties
+    //     }
+    // });
 })
 //=============================================================================>
 
@@ -293,6 +308,7 @@ var popup = new mapboxgl.Popup({
     closeOnClick: false
 });
 
+var favorites = $
 
 // Change the cursor style as a UI indicator.
 map.on('mousemove', function(e) {
@@ -310,12 +326,7 @@ map.on('mousemove', function(e) {
     var feature = features[0];
     // Populate the popup and set its coordinates based on the feature found.
     
-    var htmlString = "<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class='favorite-btn";
-    if(feature.properties.favorite){
-        htmlString += "favorite";
-    }
-
-    htmlString += "' onclick='updateFavorite(" + feature.properties.id + ")'>&hearts; Favorite</button></div>";
+    var htmlString = "<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class=" + feature.properties.favorite + " onclick='updateFavorite(" + feature.properties.id + ")'>&hearts; Favorite</button></div>";
 
     popup.setLngLat(feature.geometry.coordinates)
         .setHTML(htmlString)
@@ -334,23 +345,25 @@ map.on('mousemove', function(e) {
 // on load things should show up as css favorited
 
 
-function updateFavorite(feature, id) {
-    console.log(feature);
+//possible to pass the entire feature into this function?
+function updateFavorite(id) {
+    // var id = this.id;
     console.log(id);
-    $('.favorite-btn#' + id).toggleClass('favorite', function (){
-        $.post('/toggle-favorites.json', {'id': id}, toggleFavoritesSuccess);
-
-        // Also toggle geojson element to False
-        //     feature.properties.favorite = False;
-        
-    });
+    if (($('#' + id).attr('class')) === 'not_favorite') {
+        $('#' + id).attr('class', 'favorite');
+        $.post('/toggle-favorites.json', {'id': id, 'class': 'favorite'}, favoritesSuccess);
+    } else {
+        $('#' + id).attr('class', 'not_favorite');
+        $.post('/toggle-favorites.json', {'id': id, 'class': 'not_favorite'}, favoritesSuccess);
+    }
 }
 
 
-function toggleFavoritesSuccess(result) {
+
+
+
+function favoritesSuccess(result) {
     console.log(result.status);
-    var id = result.id;
-    console.log(id);
 }
 
 

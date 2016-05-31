@@ -119,37 +119,45 @@ def toggle_favorites():
     """
 
     park_id = request.form.get('id')
+    class_id = request.form.get('class')
+
+    class_value = {'favorite': True,
+                    'not_favorite': False}
     print park_id
     
     user = session.get('user')
     
     if user:
         # First check whether user has favorited park before.
-        favorited = Favorite.query.filter(Favorite.park_id == park_id, Favorite.user_id == user).first()
+        favorited = Favorite.query.filter(Favorite.fav_park_id == park_id, Favorite.fav_user_id == user).first()
 
+        print "THIS IS FAOVIRED", favorited
         if favorited:
             # Unfavorite park by setting favorite to False
-            favorite.favorite = False
+            favorited.favorite = class_value[class_id]
+            db.session.add(favorited)
             db.session.commit()
 
-            return jsonify(status='successfully removed favorite', id=park_id)
+            return jsonify(status='successfully update favorite')
 
         else:
             # Instantiate a favorite object with the information provided
-            favorite = Favorite(park_id=park_id, user=user_id)
+            favorite = Favorite(fav_park_id=park_id, fav_user_id=user_id)
+            print "THIS IS A NEW FAVORITE", favorite
 
             # add favorite to db session and commit to database
             db.session.add(favorite)
             db.session.commit()
 
-            return jsonify(status='successfully added favorite', id=park_id)
+            return jsonify(status='successfully added favorite')
 
     else:
         # session['user']
         # add favorites to session so they're saved as red until reload
         pass
+        # TODO update later
 
-        return jsonify(status='successfully added favorite to session', id=park_id)
+    return jsonify(status='successfully changed favorite')
 
 
 @app.route('/favorites')
