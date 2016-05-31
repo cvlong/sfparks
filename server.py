@@ -51,15 +51,11 @@ def get_current_location():
 
 @app.route('/query', methods=['GET'])
 def query_parks():
-    """Return results from users' query based on origin location, time profile, and routing profile."""
+    """Return results from users' query based on search profile."""
     
     origin = request.args.get('origin')
     time = request.args.get('time')
     routing = request.args.get('routing')
-
-
-
-
 
     # Geocode user input; variable origin is an instance of a named tuple
     origin = geocode_location(origin)
@@ -81,14 +77,13 @@ def query_parks():
     # Create list of GeoJSON objects for get_routing_times argument
     routing_params = [geojson_origin] + geojson_destinations
         # TODO: try .insert to list (but don't want to change geojson_destinations to use later)
-        # Can add_rounting_times func take these params as two separate lists?
+        # Will add_rounting_times func take these params as two separate lists?
     
+    # Create distance matrix (routing time in seconds)
     routing_times = get_routing_times(routing_params, routing)
-    # distance matrix (in seconds)
 
     # Create markers for the results of the user's query by adding each routing time to a park's GeoJSON properties
     markers = add_routing_time(geojson_destinations, routing_times)
-
     markers = json.dumps(FeatureCollection(markers))
 
 
@@ -110,9 +105,9 @@ def query_parks():
 
 #     print grid
 
-@app.route('/toggle-favorites.json', methods=['POST'])
-def toggle_favorites():
-    """Handle adding/removing favorite parks from favorite button.
+@app.route('/update-favorite.json', methods=['POST'])
+def update_favorites():
+    """Handle adding/removing favorite parks by the popup favorite button.
 
     If the user is logged in, add or remove favorites in the database. Otherwise,
     add or remove favorites in the session.
@@ -122,30 +117,31 @@ def toggle_favorites():
     class_id = request.form.get('class')
 
     class_value = {'favorite': True,
-                    'not_favorite': False}
-    print park_id
+                   'not_favorite': False}
     
     user = session.get('user')
     
     if user:
         # First check whether user has favorited park before.
-        favorited = Favorite.query.filter(Favorite.fav_park_id == park_id, Favorite.fav_user_id == user).first()
+        favorited = Favorite.query.filter(Favorite.fav_park_id == park_id,
+                                          Favorite.fav_user_id == user).first()
 
-        print "THIS IS FAOVIRED", favorited
+        print "This has been favorited", favorited
+        
         if favorited:
-            # Unfavorite park by setting favorite to False
+            # Unfavorite park by setting favorite property to False in the db.
             favorited.favorite = class_value[class_id]
+            
             db.session.add(favorited)
             db.session.commit()
 
-            return jsonify(status='successfully update favorite')
+            return jsonify(status='successfully removed favorite')
 
         else:
-            # Instantiate a favorite object with the information provided
-            favorite = Favorite(fav_park_id=park_id, fav_user_id=user_id)
-            print "THIS IS A NEW FAVORITE", favorite
+            # Instantiate a favorite object with the information provided.
+            favorite = Favorite(fav_park_id=park_id, fav_user_id=user)
+            print "This is being added to user's favorites", favorite
 
-            # add favorite to db session and commit to database
             db.session.add(favorite)
             db.session.commit()
 
