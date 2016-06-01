@@ -70,14 +70,9 @@ var park_markers = {{ parks | safe }}; // '| safe' to disable HTML autoescape
 console.log(park_markers)
 
 
-// park.id or park['features']['properties']['id']
-
-
-
-
-
 
 // Add POPOS + POSM data as source rather than layer ===========================
+
 // var popos_markers = park_markers.features.filter(function(source) {
 //     return source.features.properties.type === 'popos';
 // });
@@ -91,15 +86,16 @@ console.log(park_markers)
 // map.getSource('popos_markers').setData(popos_markers);
 // ============================================================================>
 
+var park_markers_source = new mapboxgl.GeoJSONSource({
+    data: park_markers
+    })
+
 
 
 map.on('load', function () {
-    
+
     // Add park marker data as a new GeoJSON source.
-    map.addSource("park_markers", {
-        "type": "geojson",
-        "data":  park_markers
-    });
+    map.addSource("park_markers", park_markers_source);
 
 // Adding POPOS and POSM data as layers of the park_markers source==============
 
@@ -147,24 +143,24 @@ map.on('load', function () {
         }
     });
 
-    // // Add a layer showing a user's favorites.
-    // map.addLayer({
-    //     "id": "fav-markers",
-    //     "type": "circle",
-    //     "source": "park_markers",
-    //     "filter": ["==", 'favorite', 'True'],
-    //     "layout": {
-    //         'visibility': 'visible' 
-    //     },
-    //     'paint': { 
-    //         'circle-radius': 15, // units in pixels
-    //         'circle-color': '#ff00bf',
-    //         'circle-opacity': 1.0
-    //     },
-    //     'paint.favorites': {
-    //         // 'xxxx' // class-specific paint properties
-    //     }
-    // });
+    // Add a layer showing a user's favorites.
+    map.addLayer({
+        "id": "fav-markers",
+        "type": "circle",
+        "source": "park_markers",
+        "filter": ["==", 'favorite', 'favorite'],
+        "layout": {
+            'visibility': 'visible' 
+        },
+        'paint': { 
+            'circle-radius': 15, // units in pixels
+            'circle-color': '#ff00bf',
+            'circle-opacity': 1.0
+        },
+        'paint.favorites': {
+            // 'xxxx' // class-specific paint properties
+        }
+    });
 })
 //=============================================================================>
 
@@ -260,7 +256,7 @@ map.on('load', function () {
 // });
 // ============================================================================>
 
-// Fit map to posm_markers boundary, since they are the most spread out
+// Set the map bounds based on the extent of park_markers.
 var bounds = new mapboxgl.LngLatBounds();
 
 park_markers.features.forEach(function(feature) {
@@ -268,10 +264,9 @@ park_markers.features.forEach(function(feature) {
 });
 
 map.fitBounds(bounds, {padding: '50'});
-// end fit to bounds
 
 
-// Add functionality for toggling layers via menu selection
+// Add functionality for toggling layers via menu selection.
 addLayer('POPOS', 'popos_markers');
 addLayer('SF parks', 'posm_markers');
 
@@ -308,12 +303,11 @@ var popup = new mapboxgl.Popup({
     closeOnClick: false
 });
 
-var favorites = $
-
 // Change the cursor style as a UI indicator.
 map.on('mousemove', function(e) {
+    
     // Find all rendered features from the given layers.
-    var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers', 'posm_markers'] });
+    var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers','posm_markers', 'fav-markers'] });
     
     // Indicate that the symbols are clickable by changing the cursor style to 'pointer'.
     map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
@@ -326,93 +320,66 @@ map.on('mousemove', function(e) {
     var feature = features[0];
     // Populate the popup and set its coordinates based on the feature found.
     
+    // Set the favorite attribute on the geojson object, then assign the class
+    // based on whether it's favorited or not. Use that property to determine the
+    // button class in the popop. On click, update the favorite class dynamically
+    // and send an Ajax request to the server to update the database. 
+
+
     var htmlString = "<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class=" + feature.properties.favorite + " onclick='updateFavorite(" + feature.properties.id + ")'>&hearts; Favorite</button></div>";
 
     popup.setLngLat(feature.geometry.coordinates)
         .setHTML(htmlString)
         .addTo(map);
 });
-// End popup boxes.
 
+// When using the ID to access part of an array, since they start at 0, need to set ID to 'id -1'
 
-//not getting new info from db, just changing color
-//resassign html when you click fav say its fave. instead of lookinbg in the db set it as fave
-
-// force the css to look like it has a feature
-// click favorites capture the html of that window class.html(returns html for window with faves color) -- then reassign that window to the markert
-// then next time it already knows its a fave
-
-// on load things should show up as css favorited
-
-
-//possible to pass the entire feature into this function?
 function updateFavorite(id) {
-    // var id = this.id;
     console.log(id);
     if (($('#' + id).attr('class')) === 'not_favorite') {
         $('#' + id).attr('class', 'favorite');
-        $.post('/toggle-favorites.json', {'id': id, 'class': 'favorite'}, favoritesSuccess);
+        // ADD TO FAVORITES LAYER????
+        console.log(park_markers.features[id]);
+        park_markers.features[id-1].properties.favorite = 'favorite';
+        map.getSource('park_markers').setData(park_markers);
+        console.log(park_markers.features[id]);
+        // console.log(park_markers.features[id].properties)
+        $.post('/update-favorite.json', {'id': id, 'class': 'favorite'}, favoritesSuccess);
     } else {
         $('#' + id).attr('class', 'not_favorite');
-        $.post('/toggle-favorites.json', {'id': id, 'class': 'not_favorite'}, favoritesSuccess);
+        park_markers.features[id-1].properties.favorite = 'not_favorite';
+        map.getSource('park_markers').setData(park_markers);
+        $.post('/update-favorite.json', {'id': id, 'class': 'not_favorite'}, favoritesSuccess);
     }
 }
 
 
-
+    //original code ============================================================
+//    if (($('#' + id).attr('class')) === 'not_favorite') {
+//        $('#' + id).attr('class', 'favorite');
+//        $.post('/update-favorite.json', {'id': id, 'class': 'favorite'}, favoritesSuccess);
+//    } else {
+//        $('#' + id).attr('class', 'not_favorite');
+//        $.post('/update-favorite.json', {'id': id, 'class': 'not_favorite'}, favoritesSuccess);
+//    }
+//}
+    //=========================================================================>
 
 
 function favoritesSuccess(result) {
     console.log(result.status);
 }
+// End popup boxes.
 
 
-//LAUREN:
-//there's no way for the button to remember it's a favorite
-//so modify geojson by directly accessing geojson popos.properties....favorite - then toggle to true
-//when creating the popup, add in-line css, or add a class whether feature.properties.favorite is true
-//could also set a diff marker color or marker icon if it's a favorite
-//so can change style based on this underlying 
-//then another layer filtering all not favoritedthen another layer with the favorites
-
-
-//then update favorite/not_favorite on geojson object
-
-
-//property in geojson obj about whether it's favorited or not, then use that property to determine the button class in the popup
-// [this is for things favorited before loading the page]
-
-//can we add a property to a geojson object within a map after the map has been displayed
-//if so, then use the button class property
-
-//if not, then maintain a list of buttons that are favorites
-//start that from the server - assigning to a js variable
-//then manage the list in addToFavorites
-//then access the list in the btn class - function that returns the class based on whether or not it's in the list
-
-
-
-
-
-
-
-
-//creating a new box every time, not checking whether that thing has been favorited
-//every time it's pulled up - is this item favorited? check. then if not, show not red button
-
-//OR when someone favorites it, make an ajax call to add to the session - some way to itentify in the session what has been favorited
-//List of favorited park ids, or 
-
-
-
-// Collect user's current location via browser
+// Collect user's current location via browser.
 $('#use-current-location').on('click', findCurrentLocation);
 
 var currentLatitude;
 var currentLongitude;
 
 var output = document.getElementById("output");
-
 
 function findCurrentLocation(evt) {
 
@@ -438,16 +405,14 @@ function findCurrentLocation(evt) {
     navigator.geolocation.getCurrentPosition(success, error);
 }
 
-
 function sendLatLngSuccess(result) {
     console.log(result.status);
     console.log(result.latitude);
-    // $('#field-origin').html(newLatLng);
 }
 
 
 
-// ON clickprevents form submission, finds current location, then go to route w/o using Ajax
+// ON click - prevents default form submission, finds current location, then go to route w/o using Ajax
 
 // prevent default,
 // get curret location
@@ -462,7 +427,7 @@ function sendLatLngSuccess(result) {
 //         },
 //         function (data) {
 //             //THIS IS WHAT YOU DO WITH THE DATA - change the DOM, request something, save it
-//         } //uin python, at end of route, this is what gets returned 
+//         } //in python, at end of route, this is what gets returned 
 
 </script>
 
