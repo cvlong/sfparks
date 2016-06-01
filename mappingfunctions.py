@@ -56,3 +56,22 @@ def add_routing_time(geojson_destinations, routing_times):
     # pprint(geojson_destinations)
 
     return geojson_destinations
+
+# --
+
+#     for routing in geojson_destinations:
+#         ['properties']['routing_time']
+
+# def round_of_rating(number):
+#     """Round a number to the closest half integer.
+#     >>> round_of_rating(1.3)
+#     1.5
+#     >>> round_of_rating(2.6)
+#     2.5
+#     >>> round_of_rating(3.0)
+#     3.0
+#     >>> round_of_rating(4.1)
+#     4.0"""
+
+#     return round(number * 2) / 2
+#     

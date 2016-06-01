@@ -69,6 +69,11 @@ body {
 /* favorite class */
 .favorite {
     color: red;
+    font-family: Courier;
+}
+
+.not_favorite {
+    color: blue;
 }
 
 /* for helper function - show lat/lng on mouse hover */

@@ -19,7 +19,16 @@
     <div>geojson destinations: {{ geojson_destinations }}</div>
     <br>
     <div>markers: {{ markers }}</div>
-    <br> -->
+    <br> 
+    -->
+<div>
+    <ul>
+        
+    </ul>
+</div>
+
+
+
 
     <div id='map'></div>
 
@@ -73,18 +82,35 @@ var extent = [enveloped.geometry.coordinates[0][0][0],
              enveloped.geometry.coordinates[0][2][1]
              ];
              // EX: [-122.40379, 37.78618, -122.394668, 37.79374]
-var cellWidth = 20;
+var cellWidth = 0.1;
 var units = 'miles';
 
 var grid = turf.pointGrid(extent, cellWidth, units);
 
 console.log(grid)
 
-$.post('/distances.json', {'grid': grid}, sentGridSuccess);
 
-function sentGridSuccess(result) {
-    console.log(result.status);
-}
+//build url to request distance to each point in the grid
+
+//feature collection.features = array of features
+//fc.features.map(function(feature) {return feature.geometry.coordinates.join(',')}
+//iterating over this array. transforms each object in the array from a feature to a string of two coordinates
+//mao over ffeatures since it's an array
+//that will be an array of comma joined coordinates, then join with semicolons to add to the string
+
+// still save the grid as the fc
+// want to use the centre coordinate, then add the descrinations
+//so for objects in the fc (remember they'll be off by one) then add this as a property to each geojson feature
+
+
+
+
+
+// $.post('/distances.json', {'grid': grid}, sentGridSuccess);
+
+// function sentGridSuccess(result) {
+//     console.log(result.status);
+// }
 
 // find distances to points in the point-grid
 
