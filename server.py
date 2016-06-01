@@ -83,18 +83,23 @@ def query_parks():
     routing_times = get_routing_times(routing_params, routing)
 
     # Create markers for the results of the user's query by adding each routing time to a park's GeoJSON properties
-    markers = add_routing_time(geojson_destinations, routing_times)
-    markers = json.dumps(FeatureCollection(markers))
+    all_markers = add_routing_time(geojson_destinations, routing_times)
+    print type(all_markers) #LIST
+    print type(all_markers[0]) #DICT
+
+    markers = json.dumps(FeatureCollection(all_markers))
+    print type(markers) #STRING
+    print markers
 
 
     return render_template('query.html',
-                            favorite_parks=favorite_parks,
                             origin=origin,
                             time=time,
                             # close_parks=close_parks,
                             geojson_origin=geojson_origin,
                             geojson_destinations=geojson_destinations,
                             # routing_times=routing_times,
+                            all_markers=all_markers,
                             markers=markers)
 
 
@@ -148,10 +153,9 @@ def update_favorites():
             return jsonify(status='successfully added favorite')
 
     else:
-        # session['user']
-        # add favorites to session so they're saved as red until reload
+        # if there's no session user, add favorites to session so they're temporarily saved
         pass
-        # TODO update later
+        # TODO: update later
 
     return jsonify(status='successfully changed favorite')
 
@@ -160,12 +164,12 @@ def update_favorites():
 def return_favorites():
     """Display user's favorite parks."""
 
-    # Add individual <user> to URL?
+    # TODO: Add individual <user> to URL? But no username for now, just email.
 
-    user = session.get(user)
+    user = session.get('user')
     
     if user:
-        favorites = Favorite.query.filter_by(user_id=user_id).all()
+        favorites = Favorite.query.filter(Favorite.fav_user_id == user).all()
 
     return render_template('favorites.html',
                             favorites=favorites)
@@ -182,7 +186,7 @@ def login():
 def process_login():
     """Log in existing users and redirect to homepage."""
 
-    email = request.form.get('email') # diff. from request.form('email')??
+    email = request.form.get('email')
     password = request.form.get('password')
 
     # select the user from the database who has the given email (if any)
