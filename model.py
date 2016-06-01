@@ -134,8 +134,7 @@ class Favorite(db.Model):
     __tablename__ = "favorites"
 
     fav_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    favorite = db.Column(db.Boolean, default=False) 
-        # change default to True?
+    favorite = db.Column(db.Boolean, default=True) 
     fav_park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
     fav_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     logged_at = db.Column(db.DateTime, default=datetime.utcnow)
