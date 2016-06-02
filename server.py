@@ -7,7 +7,7 @@ import json
 from geojson import Feature, Point, FeatureCollection
 from model import db, connect_to_db, Park, Popos, Posm, User, Favorite
 from geofunctions import geocode_location, get_routing_times
-from mappingfunctions import find_close_parks, add_routing_time, make_feature_coll
+from mappingfunctions import format_origin, find_close_parks, add_routing_time
 
 
 app = Flask(__name__)
@@ -23,17 +23,22 @@ app.jinja_env.undefined = StrictUndefined
 def index():
     """Homepage; render all SF parks."""
 
-    # If the user is logged in, pass their user ID into make_feature_coll()
-    # to add their favorites to the geojson park objects rendered on page load.
+    # If the user is logged in, add their favorites to the geojson park objects
+    # rendered on page load.
     user_id = session.get('user')
 
     # if user_id:
         # Get user object
         # user = User.query.filter_by(user_id = user_id).first()
         # already have user_id from the session
-        
+    
     parks = Park.query.all()
-    parks = make_feature_coll(parks, user_id)
+    # parks = Park.query.filter(~Park.name.contains('Playground'))
+    
+    geojson_parks = FeatureCollection([park.create_geojson_object(user_id)
+                                       for park in parks])
+    parks = json.dumps(geojson_parks)
+
 
     return render_template('homepage.html',
                             parks=parks)
@@ -56,12 +61,17 @@ def query_parks():
     origin = request.args.get('origin')
     time = request.args.get('time')
     routing = request.args.get('routing')
+    playgrounds = request.args.get('playgrounds')
 
-    # Geocode user input; variable origin is an instance of a named tuple
-    origin = geocode_location(origin)
+    # Determine whether origin input is an address or lat/lng pair.
+    origin = format_origin(origin)
 
-    # Get all park objects in database
-    parks = Park.query.all()
+    if playgrounds == None:
+        # Get parks that don't include "playground" in the name
+        parks = Park.query.filter(~Park.name.contains('Playground'))
+    else:
+        # Get all park objects in database
+        parks = Park.query.all()
 
     # Create a dictionary containing park objects within the bounding radius heuristic
     close_parks = find_close_parks(origin, time, routing, parks)
@@ -84,12 +94,11 @@ def query_parks():
 
     # Create markers for the results of the user's query by adding each routing time to a park's GeoJSON properties
     all_markers = add_routing_time(geojson_destinations, routing_times)
-    print type(all_markers) #LIST
-    print type(all_markers[0]) #DICT
+    # print type(all_markers) #LIST
+    # print type(all_markers[0]) #DICT
 
     markers = json.dumps(FeatureCollection(all_markers))
-    print type(markers) #STRING
-    print markers
+    # print type(markers) #STRING
 
 
     return render_template('query.html',
@@ -121,8 +130,10 @@ def update_favorites():
     park_id = request.form.get('id')
     class_id = request.form.get('class')
 
-    class_value = {'favorite': True,
-                   'not_favorite': False}
+    class_value = {
+        'favorite': True,
+        'not_favorite': False
+    }
     
     user = session.get('user')
     
@@ -130,22 +141,23 @@ def update_favorites():
         # First check whether user has favorited park before.
         favorited = Favorite.query.filter(Favorite.fav_park_id == park_id,
                                           Favorite.fav_user_id == user).first()
-
-        print "This has been favorited", favorited
         
         if favorited:
+            # print "This park is in the favorites db", favorited.fav_park_id
             # Unfavorite park by setting favorite property to False in the db.
             favorited.favorite = class_value[class_id]
+            
+            # print "If False, removing this park from favorites db. If True, adding to favorites db", favorited.favorite
             
             db.session.add(favorited)
             db.session.commit()
 
-            return jsonify(status='successfully removed favorite')
+            return jsonify(status='successfully changed favorite')
 
         else:
             # Instantiate a favorite object with the information provided.
             favorite = Favorite(fav_park_id=park_id, fav_user_id=user)
-            print "This is being added to user's favorites", favorite
+            # print "This park is being added to user's favorites", favorite.fav_park_id
 
             db.session.add(favorite)
             db.session.commit()
@@ -157,7 +169,7 @@ def update_favorites():
         pass
         # TODO: update later
 
-    return jsonify(status='successfully changed favorite')
+    # return jsonify(status='successfully changed favorite')
 
 
 @app.route('/favorites')

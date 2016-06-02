@@ -1,17 +1,13 @@
 import os
 from collections import namedtuple
-from mapbox import Geocoder, Distance
-from geopy.distance import vincenty
 from pprint import pprint
+from mapbox import Geocoder, Distance
 from model import db, connect_to_db, Popos, Posm
 
 
 MB_ACCESS_TOKEN = os.environ['MAPBOX_ACCESS_TOKEN']
 geocoder = Geocoder(access_token=MB_ACCESS_TOKEN)
 service = Distance(access_token=MB_ACCESS_TOKEN)
-
-# Note: run 'source secrets.sh' before running 
-# this file to set required environmental variables
 
 
 def geocode_location(location):
@@ -36,17 +32,7 @@ def geocode_location(location):
         pass
         # Add else condition
 
-print geocode_location("55 Main Street")
-
-
-def find_distance(origin, destination):
-    """Find straight-line distance between two points entered as lat/lng tuples."""
-
-    return vincenty(origin, destination).miles
-
-
-# Use geojson.io to verify format!
-# Filter using turf before sending reuest?
+# print geocode_location("55 Main Street")
 
 
 # def get_routing_time(origin, destinations, routing):
