@@ -56,33 +56,20 @@ def add_routing_time(geojson_destinations, routing_times):
     """Add routing time (in seconds) to each GeoJSON objects' properties."""
     
     if len(geojson_destinations) == len(routing_times):
-
         for geojson_obj in geojson_destinations:
-            geojson_obj['properties']['routing_time'] = routing_times.pop(0)
+            time = routing_times.pop(0)
+            geojson_obj['properties']['routing_time'] = time
+            geojson_obj['properties']['routing_mins'] = format_routing_time(time)
 
     else:
         pass
         # TODO: throw an error
 
-    # pprint(geojson_destinations)
-
     return geojson_destinations
 
-# --
 
-#     for routing in geojson_destinations:
-#         ['properties']['routing_time']
-
-# def round_of_rating(number):
-#     """Round a number to the closest half integer.
-#     >>> round_of_rating(1.3)
-#     1.5
-#     >>> round_of_rating(2.6)
-#     2.5
-#     >>> round_of_rating(3.0)
-#     3.0
-#     >>> round_of_rating(4.1)
-#     4.0"""
-
-#     return round(number * 2) / 2
-#     
+def format_routing_time(routing_time):
+    """Convert API result from seconds to minutes; round result to closest half integer."""
+    
+    mins = routing_time / 60
+    return round(mins * 2.0) / 2.0
