@@ -40,6 +40,7 @@ class Park(db.Model):
                 # 'address': None, set for POSM?
                 'marker-symbol': None,
                 'routing_time': None,
+                'routing_mins': None,
                 'favorite': 'not_favorite'
                 }
         }
