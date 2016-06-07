@@ -1,87 +1,111 @@
 {% extends 'base.html' %} 
-
 {% block title %}SFparks{% endblock %}
-
 {% block head %} 
 {% endblock %}
 
 {% block body %}
+<!-- Button trigger modal -->
+<button type="button" id="search-btn" class="btn btn-primary search" data-toggle="modal" data-target="#myModal">
+  Search SFparks
+</button>
 
-    <div id="origin-input">
-        <form action="/query" method="GET">
-            <label for="field-origin">Starting location:</label>
-            <input type="text" name="origin" id="field-origin">
-
-            <label for="dropdown-maxtime">Time there:</label>
-                <select name="time">
-                  <option value="5">5 mins.</option>
-                  <option value="10">10 mins.</option>
-                  <option value="15">15 mins.</option>
-                  <option value="20">20 mins.</option>
-                  <option value="30">30 mins.</option>
-                  <option value="45">45 mins.</option>
-                </select>
-
-            <label for="field-routing">Routing profile:</label>
-                <input type="radio" name="routing" value="walking">Walking
-                <input type="radio" name="routing" value="cycling">Cycling
-
-        <input type="submit" value="Let's go!">
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h3 class="modal-title" id="myModalLabel">Search parks and public open spaces</h3>
+      </div>
+      <div class="modal-body">
+        <form action="/query" id="search-input" method="get" name="search-input">
+            <label for="field-origin">Where are you starting from?</label>
+            <input id="field-origin" name="origin" type="text"><br>
+            <div>
+                <button class="btn btn-default" id="use-current-location">Use current location</button>
+                <span id="output"></span>
+            </div>
+            <br>
+            <label for="dropdown-maxtime">How much time do you have?</label> <select name="time">
+                <option value="5">
+                    5 mins.
+                </option>
+                <option value="10">
+                    10 mins.
+                </option>
+                <option value="15">
+                    15 mins.
+                </option>
+                <option value="20">
+                    20 mins.
+                </option>
+                <option value="30">
+                    30 mins.
+                </option>
+                <option value="45">
+                    45 mins.
+                </option>
+            </select><br>
+            <br>
+            <label for="field-routing">How will you get there?</label>
+                <input name="routing" type="radio" value="walking" checked>Walking
+                <input name="routing" type="radio" value="cycling">Cycling
+            <br><br>
+        <!-- </div>
+      <div class="modal-footer"> -->
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Let's go!</button>
         </form>
+      </div>
     </div>
+  </div>
+</div>
 
-<!-- separate button to get user's current location -->
-    <div>
-        <button id="use-current-location">Use current location</button>
-        <span id="output"></span>
-    </div>
+<div>
+    <button class="btn btn-default" id="reset-map">Reset map view</button>
+</div>
 
-    <div>
-        <button id="reset-map">Reset map view</button>
-    </div>
+<div class="container-fluid">
+    <div class='home-map' id='map'></div>
+    <nav class='toggle-menu' id='menu'></nav>
+</div>
 
-    <div id='map' class='home-map'></div>
-    <nav id='menu' class='toggle-menu'></nav>
-
-<!-- Could move scripts to a separate JS file, then link to it here: src="/static, ETC" -->
-
+<!-- TODO: Move scripts to a separate JS file -->
 <script>
+
+$('#myModal').on('shown.bs.modal', function () {
+  $('#myInput').focus()
+})
 
 var map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v9',
+    style: 'mapbox://styles/cvlong/ciolst186006fbpne0devqoel',
     // toggle with? mapbox://styles/mapbox/satellite-streets-v9
-    //in mapbox studio publish style and use that URL here
     center: [-122.431, 37.773], // center of SF
     zoom: 12.5
 });
 
-// Disable map rotation using right click + drag
-map.dragRotate.disable();
-
-// Disable map rotation using touch rotation gesture
-map.touchZoomRotate.disableRotation();
-
-
 var park_markers = {{ parks | safe }}; // '| safe' to disable HTML autoescape
-
-// var park_markers = {"type": "FeatureCollection", "features": [{"geometry": {"type": "Point", "coordinates": [-122.39891, 37.7884]}, "type": "Feature", "properties": {"name": "555 Mission St", "marker-symbol": null, "routing_time": null, "favorite": false, "type": "popos", "id": 1}}, {"geometry": {"type": "Point", "coordinates": [-122.396, 37.7888]}, "type": "Feature", "properties": {"name": "Foundry Square NE", "marker-symbol": null, "routing_time": null, "favorite": false, "type": "popos", "id": 2}}, {"geometry": {"type": "Point", "coordinates": 
-
-//var park_markers = JSON.parse(parks)
-
-console.log(park_markers)
-
 
 var park_markers_source = new mapboxgl.GeoJSONSource({
         data: park_markers
     })
+
+// Fit map to boundaries of displayed markers
+var bounds = [[-122.527, 37.753], [-122.370, 37.812]]
+
+map.fitBounds(bounds, {padding: '20'});
+
+// Reset map view presented on load
+$('#reset-map').on('click', function() {
+    map.fitBounds(bounds, {padding: '-20'});
+});
 
 
 map.on('load', function () {
 
     // Add park marker data from previously defined GeoJSON source.
     map.addSource("park_markers", park_markers_source);
-
 
     // Add a layer showing the POPOS markers.
     map.addLayer({
@@ -95,14 +119,9 @@ map.on('load', function () {
             'visibility': 'visible' 
         },
         'paint': {
-            'circle-radius': 10, // units in pixels
+            'circle-radius': 8, // units in pixels
             'circle-color': "#ff0000",
-            'circle-opacity': {
-                "stops": [[3, 0.2], [15,0.8]] // interpolate values?
-            }
-        },
-        'paint.popos': {
-            // 'xxxx' // class-specific paint properties
+            'circle-opacity': 0.7
         }
     });
 
@@ -116,14 +135,11 @@ map.on('load', function () {
             'visibility': 'visible' 
         },
         'paint': { 
-            'circle-radius': 10, // units in pixels
+            'circle-radius': 8, // units in pixels
             'circle-color': '#1aa3ff',
             'circle-opacity': {
-                "stops": [[3, 0.2], [15,0.8]] // interpolate values based on acreage?
+                "stops": [[3, 0.2], [15,0.7]] // interpolate values based on acreage?
             }
-        },
-        'paint.posm': {
-            // 'xxxx' // class-specific paint properties
         }
     });
 
@@ -137,83 +153,17 @@ map.on('load', function () {
             'visibility': 'visible' 
         },
         'paint': { 
-            'circle-radius': 15, // units in pixels
+            'circle-radius': 11, // units in pixels
             'circle-color': '#ff00bf',
             'circle-opacity': 1.0
         },
-        'paint.favorites': {
-            // 'xxxx' // class-specific paint properties
-        }
     });
 })
 
-// // Only keep this section if it's possible to cluster POPOS data by adding 
-// // cluster filters to .addLayer() rather than assigning on .addSource()======
-
-    // Display the POPOS data in three layers, each filtered to a range of
-    // count values with a different fill color.
-    // var layers = [
-    //     [20, '#f28cb1'],
-    //     [10, '#f1f075'],
-        // [0, '#51bbd6']
-    // ];
-
-    // layers.forEach(function (layer, i) {
-    //     map.addLayer({
-    //         "id": "cluster-" + i,
-    //         "type": "circle",
-    //         "source": "park_markers",
-    //         "paint": {
-    //             "circle-color": layer[1],
-    //             "circle-radius": 14
-    //         },
-    //         "filter": i == 0 ?
-    //             [">=", "point_count", layer[0]] :
-    //             ["all",
-    //                 // set filter to include popos data
-    //                 ["==", 'type', 'popos'],
-    //                 [">=", "point_count", layer[0]],
-    //                 ["<", "point_count", layers[i - 1][0]]]
-    //     });
-    // });
-
-    // // Add a layer for the POPOS clusters' count labels.
-    // map.addLayer({
-    //     "id": "cluster-count",
-    //     "type": "symbol",
-    //     "source": "park_markers",
-    //     "layout": {
-    //         "text-field": "{point_count}",
-    //         "text-font": [
-    //                 "DIN Offc Pro Medium",
-    //                 "Arial Unicode MS Bold"
-    //             ],
-    //         "text-size": 12
-    //     }
-    // });
-
-// });
-// ============================================================================>
-
-// Set the map bounds based on the extent of park_markers.
-
-
-//$('#reset-map').on('click', resetBounds);
-    // TODO: Add button to reset map to bounds presented on load
-    // write function resetBounds
-
-var bounds = new mapboxgl.LngLatBounds();
-
-park_markers.features.forEach(function(feature) {
-    bounds.extend(feature.geometry.coordinates);
-});
-
-map.fitBounds(bounds, {padding: '50'});
-
-
 // Add functionality for toggling layers via menu selection.
 addLayer('Privately Owned Public Open Spaces', 'popos_markers');
-addLayer('SF parks', 'posm_markers');
+addLayer('SF public parks', 'posm_markers');
+addLayer('My Favorites', 'fav-markers');
 
 function addLayer(name, id) {
     var link = document.createElement('a');
@@ -242,74 +192,6 @@ function addLayer(name, id) {
 // End toggle layers.
 
 
-// Create a popup info box on hover, but don't add it to the map yet.
-var popup = new mapboxgl.Popup({
-    closeButton: false,
-    closeOnClick: false
-});
-
-map.on('mousemove', function(e) {
-    
-    // Find all rendered features from the provided layers.
-    var features = map.queryRenderedFeatures(e.point, { layers: ['popos_markers','posm_markers', 'fav-markers'] });
-    
-    // Indicate that the symbols are clickable by changing the cursor style to 'pointer'
-    // as a UI indicator.
-    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
-
-    if (!features.length) {
-        popup.remove();
-        return;
-    }
-
-    // Populate the popup and set its coordinates based on the feature found.
-    var feature = features[0];
-    
-    // Set the HTML string using attributed from each layer's features. Assign a
-    // unique ID to each 'favorite' button for executing Ajax calls. Pull data
-    // from the favorite attribute on the initial geoJSON object, and assign the
-    // class based on whether it's favorited or not; use that property to determine
-    // the button class in the popup.
-    var htmlString = "<div><p>" + feature.properties.name + "</p><button id=" + feature.properties.id + " class=" + feature.properties.favorite + " onclick='updateFavorite(" + feature.properties.id + ")'>&hearts; Favorite</button></div>";
-
-    popup.setLngLat(feature.geometry.coordinates)
-        .setHTML(htmlString)
-        .addTo(map);
-});
-
-// When using the ID to access part of an array, since they start at 0, need to set ID to 'id -1'
-
-
-    // On click, update the favorite class dynamically and send an Ajax request
-    // to the server to update the database. Also, update the geoJSON object so
-    // the features.properties.favorites is updated next time a popup is made.
-    // NOTE: using [id-1] to access part of the array (which begins with index 0)
-    // and correspond with the database sequence, which begins at index 1.
-
-function updateFavorite(id) {
-    console.log(id);
-    if (($('#' + id).attr('class')) === 'not_favorite') {
-        $('#' + id).attr('class', 'favorite');
-        // console.log(park_markers.features[id]);
-        park_markers.features[id-1].properties.favorite = 'favorite';
-        map.getSource('park_markers').setData(park_markers);
-        // console.log(park_markers.features[id]);
-        // console.log(park_markers.features[id].properties)
-        $.post('/update-favorite.json', {'id': id, 'class': 'favorite'}, favoriteSuccess);
-    } else {
-        $('#' + id).attr('class', 'not_favorite');
-        park_markers.features[id-1].properties.favorite = 'not_favorite';
-        map.getSource('park_markers').setData(park_markers);
-        $.post('/update-favorite.json', {'id': id, 'class': 'not_favorite'}, favoriteSuccess);
-    }
-}
-
-function favoriteSuccess(result) {
-    console.log(result.status);
-}
-// End popup boxes.
-
-
 // Collect user's current location via browser.
 $('#use-current-location').on('click', findCurrentLocation);
 
@@ -319,6 +201,7 @@ var currentLongitude;
 var output = document.getElementById("output");
 
 function findCurrentLocation(evt) {
+    event.preventDefault();
 
     if (!navigator.geolocation) {
         output.innerHTML = "<p>Geolocation is not supported by your browser</p>";
@@ -328,9 +211,13 @@ function findCurrentLocation(evt) {
     function success(position) {
         currentLatitude  = position.coords.latitude;
         currentLongitude = position.coords.longitude;
-        console.log('latitude: ' + currentLatitude + ' \n longitude: ' + currentLongitude);
-        $.post('/current-location.json', {'latitude': currentLatitude, 'longitude': currentLongitude}, sendLatLngSuccess);
-        output.innerHTML = '<p>Latitude is ' + currentLatitude + '<br>Longitude is ' + currentLongitude + '</p>';
+        // console.log('latitude: ' + currentLatitude + ' \n longitude: ' + currentLongitude);
+        $.post('/current-location.json', {'latitude': currentLatitude, 
+                                          'longitude': currentLongitude}, sendLatLngSuccess);
+        $('input#field-origin').val(currentLatitude.toFixed(4) + ',' 
+                                  + currentLongitude.toFixed(4));
+        output.innerHTML = '';
+
     };
 
     function error() {
@@ -344,28 +231,10 @@ function findCurrentLocation(evt) {
 
 function sendLatLngSuccess(result) {
     console.log(result.status);
-    console.log(result.latitude);
+    // map.getSource('single-point').setData(ev.result.geometry); // update
 }
 
-
-
-// ON click - prevents default form submission, finds current location, then go to route w/o using Ajax
-
-// prevent default,
-// get curret location
-// then submit
-
-// In JS to redirect to other page, AKA python route
-
-// // Send currentLatitude, currentLongitude back to server??
-//     $.post('/current-location.json', { //ajax goes to this route, and sends this json like form data
-//         'latitude': currentLatitude,
-//         'longitude': currentLongitude
-//         },
-//         function (data) {
-//             //THIS IS WHAT YOU DO WITH THE DATA - change the DOM, request something, save it
-//         } //in python, at end of route, this is what gets returned 
-
 </script>
+<script src='/static/js/map.js'></script>
 
 {% endblock %}
