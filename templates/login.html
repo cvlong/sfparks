@@ -1,27 +1,29 @@
 {% extends 'base.html' %}
+{% block title %}Log In{% endblock %}
 {% block body %}
 
-<h2>Sign in</h2>
-
-<form action='/process-login' method='POST'>
-    <div>
-        <label for='field-email'>Email address: </label>
-            <input type='text' name='email' id='field-email' required>
-        <br><br>
-        <label for='field-password'>Password: </label>
-            <input type='password' name='password' id='field-password' required>
-        <br><br>
-            <input type='submit' value='Sign in'>
-    </div>
-</form>
+<div class="form">
+    <h3>Sign in</h3>
+    <form action='/process-login' method='POST'>
+      <div class="form-group">
+        <label for='field-email'></label>
+        <input type='email' name='email' class="form-control" id='field-email' placeholder="Email" required>
+      </div>
+      <div class="form-group">
+        <label for='field-password'></label>
+        <input type='password' name='password' class="form-control" id='field-password' placeholder="Password" required>
+      </div>
+      <button type="submit" class="btn btn-default">Sign in</button>
+    </form>
+</div>
 
 <br>
+<br>
 
-<form action='/register' method='POST'>
-    <div>
-        <input type='submit' value='Register'>
-    </div>
-</form>
-
+<div class="form">
+    <form action='/register' method='POST'>
+        <input type='submit' class="btn btn-default" value='Register'>
+    </form>
+</div>
 
 {% endblock %}

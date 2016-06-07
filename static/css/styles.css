@@ -4,11 +4,27 @@ body {
     padding:0;
 }
 
+.btn {
+    position:relative;
+    z-index: 2;
+}
+
+#search-btn {
+    left: 20px;
+}
+
+#reset-map {
+    position: fixed;
+    bottom:20px;
+    left: 20px;
+}
+
 /* Layout for map - same ID for map on homepage and query results page */
 #map {
     position:absolute;
-    top:200px;  /* set top:0 and position map under login/logout & search forms - temp set to 200px until implementing bootstrap */
+    top:50px;
     bottom:0;
+    left:0;
     width:100%;
 }
 
@@ -17,7 +33,7 @@ body {
     background: #fff;
     position: absolute;
     z-index: 1;
-    top: 10px;
+    top: 100px; 
     right: 10px;
     border-radius: 3px;
     width: 120px;
@@ -56,7 +72,6 @@ body {
 }
 
 /* Popup boxes - same ID for popups on homepage and query results page  */
-
 .mapboxgl-popup {
     max-width: 400px;
     font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
@@ -76,7 +91,12 @@ body {
     color: blue;
 }
 
-/* for helper function - show lat/lng on mouse hover */
+.form {
+    max-width: 300px;
+    padding-left: 20px;
+}
+
+/* for helper function to show lat/lng on mouse hover */
 #info {
     display: block;
     position: relative;

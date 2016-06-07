@@ -1,156 +1,78 @@
-
 {% extends 'base.html' %}
-
 {% block title %}SFparks{% endblock %}
-
 {% block head %} 
-
 {% endblock %}
-
 {% block body %}
-
-    <h2>SFparks</h2>
-
-<!-- 
-    <div>origin: {{ origin }}, routing time: {{ time }}</div>
-    <br>
-    <div>geojson origin: {{ geojson_origin }}</div>
-    <br>
-    <div>geojson destinations: {{ geojson_destinations }}</div>
-    <br>
-    <div>markers: {{ markers }}</div>
-    <br> 
-    -->
-<div>
-    <ul>
-        
-    </ul>
-</div>
-
-
-
+    
+    <div>
+        <button class="btn btn-default" id="reset-map">Reset map view</button>
+    </div>
 
     <div id='map'></div>
 
-<!-- HELPER FUNCTION FOR LAT/LNG VERIFICATION -->
-    <pre id='info'></pre>
-
+    <nav class='toggle-menu' id='menu'></nav>
+    
+    <!-- Helper function for lat/lng verification -->
+    <!-- <pre id='info'></pre> -->
 
 <script>
 
 var origin = {{ geojson_origin | safe }};
-var markers = {{ markers | safe }};
-
-// ORIGIN = ORIGIN VALUE from JSON
+var routing = "{{ routing }}";
 
 var map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v9', 
-    center: [origin.geometry.coordinates[0], origin.geometry.coordinates[1]]
-    // programmatically set center to origin lat/lng
-    // zoom: 12.5,
+    style: 'mapbox://styles/cvlong/ciolst186006fbpne0devqoel', 
+    center: [origin.geometry.coordinates[0],
+             origin.geometry.coordinates[1]
+    ]
 });
 
-// Disable map rotation using right click + drag
-map.dragRotate.disable();
+var park_markers = {{ markers | safe }}; // '| safe' to disable HTML autoescape
 
-// Disable map rotation using touch rotation gesture
-map.touchZoomRotate.disableRotation();
+var park_markers_source = new mapboxgl.GeoJSONSource({
+        data: park_markers
+    });
 
+// Fit map to boundaries of displayed markers
+var bounds = new mapboxgl.LngLatBounds();
 
-// Create a bounding box ('envelope') around the markers
-var enveloped = turf.envelope(markers);
+park_markers.features.forEach(function(feature) {
+    bounds.extend(feature.geometry.coordinates);
+});
 
-// var resultFeatures = fc.features.concat(enveloped);
+map.fitBounds(bounds, {padding: '20'});
 
-var result = { //put the resulting envelope in a geojson format FeatureCollection
-    "type": "FeatureCollection",
-    "features": [enveloped] 
-};
-
-// console.log([enveloped.geometry.coordinates[0][0][0],
-//              enveloped.geometry.coordinates[0][0][1],
-//              enveloped.geometry.coordinates[0][2][0],
-//              enveloped.geometry.coordinates[0][2][1]]
-//             );
-
-// turf.point-grid 
-// has to be in order [minX, minY, maxX, maxY]
-var extent = [enveloped.geometry.coordinates[0][0][0],
-             enveloped.geometry.coordinates[0][0][1],
-             enveloped.geometry.coordinates[0][2][0],
-             enveloped.geometry.coordinates[0][2][1]
-             ];
-             // EX: [-122.40379, 37.78618, -122.394668, 37.79374]
-var cellWidth = 0.1;
-var units = 'miles';
-
-var grid = turf.pointGrid(extent, cellWidth, units);
-
-console.log(grid)
-
-
-//build url to request distance to each point in the grid
-
-//feature collection.features = array of features
-//fc.features.map(function(feature) {return feature.geometry.coordinates.join(',')}
-//iterating over this array. transforms each object in the array from a feature to a string of two coordinates
-//mao over ffeatures since it's an array
-//that will be an array of comma joined coordinates, then join with semicolons to add to the string
-
-// still save the grid as the fc
-// want to use the centre coordinate, then add the descrinations
-//so for objects in the fc (remember they'll be off by one) then add this as a property to each geojson feature
-
-
-
-
-
-// $.post('/distances.json', {'grid': grid}, sentGridSuccess);
-
-// function sentGridSuccess(result) {
-//     console.log(result.status);
-// }
-
-// find distances to points in the point-grid
-
-
-// var gridCoords = mapboxClient.getDistances([
-//   [-95.4431142, 33.6875431],
-//   [-95.0431142, 33.6875431],
-//   [-95.0431142, 33.0875431],
-//   [-95.0431142, 33.0175431],
-//   [-95.4831142, 33.6875431]
-// ], {
-//   profile: 'walking'
-// }, function(err, results) {
-//   console.log(results);
-// });
-
-
-
-
-
+// Reset map view presented on load
+$('#reset-map').on('click', function() {
+    map.fitBounds(bounds, {padding: '10'});
+});
 
 map.on('load', function () {
-    
-    // Add turf data.
-    map.addSource('turf-data', {
-        "type": "geojson",
-        "data": grid
-    });
+    // Add park marker data from previously defined GeoJSON source.
+    map.addSource("park_markers", park_markers_source);
 
-    // Add turf.
-    map.addLayer({
-        "id": "turf-data",
-        "type": "circle",
-        "source": "turf-data"
-    });
+    // // Add turf data.
+    // map.addSource('turf-data', {
+    //     "type": "geojson",
+    //     "data": grid
+    // });
 
-    grid.features.forEach(function (feature) {
-        feature.properties["marker-color"] = "#6BC65F";
-        feature.properties["marker-size"] = "small";
-    });
+    // // Add turf.
+    // map.addLayer({
+    //     "id": "turf-data",
+    //     "type": "circle",
+    //     "source": "turf-data",
+    //     "paint": {
+    //         "circle-color": "#f00",
+    //         "circle-radius": 5
+    //     }
+    // });
+
+    // grid.features.forEach(function (feature) {
+    //     feature.properties["marker-color"] = "#6BC65F";
+    //     feature.properties["marker-size"] = "small";
+    // });
 
     // Add origin point as a new GeoJSON source.
     map.addSource('origin-point', {
@@ -173,21 +95,11 @@ map.on('load', function () {
         }
     });
 
-    // Add marker data as a new GeoJSON source.
-    map.addSource("markers", {
-        "type": "geojson",
-        "data":  markers
-    });
-
-    var routing_time = markers.features.map(function (feature) {
-        return feature.properties.routing_time;
-    })
-
     // Add a layer showing the markers.
     map.addLayer({
-        "id": "markers",
+        "id": "park_markers",
         "type": "circle",
-        "source": "markers",
+        "source": "park_markers",
         "layout": {
             "visibility": 'visible'
         },
@@ -205,66 +117,71 @@ map.on('load', function () {
             'circle-opacity': 0.8
         }
     });
+
+    // Add a layer showing a user's favorites.
+    map.addLayer({
+        "id": "fav-markers",
+        "type": "circle",
+        "source": "park_markers",
+        "filter": ["==", 'favorite', 'favorite'],
+        "layout": {
+            'visibility': 'visible' 
+        },
+        'paint': { 
+            'circle-radius': 11, // units in pixels
+            'circle-color': '#ff00bf',
+            'circle-opacity': 1.0
+        },
+    });
 });
 
-// Fit map to boundaries of displayed markers
-var bounds = new mapboxgl.LngLatBounds();
 
-markers.features.forEach(function(feature) {
-    bounds.extend(feature.geometry.coordinates);
-});
+// Add functionality for toggling layers via menu selection.
+// addLayer('Privately Owned Public Open Spaces', 'popos_markers');
+// addLayer('SF public parks', 'posm_markers');
+// addLayer('Parks', 'park_markers');
+addLayer('My Favorites', 'fav-markers');
 
-map.fitBounds(bounds, {padding: '50'});
-// End fit to bounds
+function addLayer(name, id) {
+    var link = document.createElement('a');
+    link.href = '#';
+    link.className = 'active';
+    link.textContent = name;
 
-//
+    link.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
 
+        var visibility = map.getLayoutProperty(id, 'visibility');
 
+        if (visibility === 'visible') {
+            map.setLayoutProperty(id, 'visibility', 'none');
+            this.className = '';
+        } else {
+            this.className = 'active';
+            map.setLayoutProperty(id, 'visibility', 'visible');
+        }
+    };
 
-
-// Add popup info boxes on hover:
-// Create a popup, but don't add it to the map yet.
-var popup = new mapboxgl.Popup({
-    closeButton: false,
-    closeOnClick: false
-});
-
-map.on('mousemove', function(e) {
-    var features = map.queryRenderedFeatures(e.point, { layers: ['markers'] });
-    
-    // Indicate that the symbols are clickable by changing the cursor style to 'pointer'.
-    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
-
-    if (!features.length) {
-        popup.remove();
-        return;
-    }
-
-    var feature = features[0];
-
-    // Populate the popup and set its coordinates
-    // based on the feature found.
-    popup.setLngLat(feature.geometry.coordinates)
-        .setHTML(feature.properties.name)
-        .addTo(map);
-});
-// end popup boxes
+    var layers = document.getElementById('menu');
+    layers.appendChild(link);
+}
+// End toggle layers.
 
 
+// Helper function for lat/lng verification
+// map.on('mousemove', function (e) {
+//     document.getElementById('info').innerHTML =
+//         // e.point is the x, y coordinates of the mousemove event relative
+//         // to the top-left corner of the map
+//         JSON.stringify(e.point) + '<br />' +
+//         // e.lngLat is the longitude, latitude geographical position of the event
+//         JSON.stringify(e.lngLat);
+// });
 
-
-// HELPER FUNCTION FOR LAT/LNG VERIFICATION
-map.on('mousemove', function (e) {
-    document.getElementById('info').innerHTML =
-        // e.point is the x, y coordinates of the mousemove event relative
-        // to the top-left corner of the map
-        JSON.stringify(e.point) + '<br />' +
-            // e.lngLat is the longitude, latitude geographical position of the event
-        JSON.stringify(e.lngLat);
-});
-    
 
 </script>
+<script src='/static/js/map.js'></script>
+<script src='/static/js/turf.js'></script>
 
 {% endblock %}
-
