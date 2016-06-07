@@ -98,6 +98,7 @@ def query_parks():
     all_markers = add_routing_time(geojson_destinations, routing_times)
         # print type(all_markers) #LIST
         # print type(all_markers[0]) #DICT
+    print all_markers
 
     markers = json.dumps(FeatureCollection(all_markers))
         # print type(markers) #STRING
