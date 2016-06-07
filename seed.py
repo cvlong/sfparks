@@ -1,7 +1,5 @@
 """Utility file to seed SFparks database from external API requests and seed_data/"""
 
-# from sqlalchemy import func
-
 import requests
 from datetime import datetime
 from server import app
@@ -12,10 +10,6 @@ def load_popos():
     """Load Privately-Owned Public Open Space (POPOS) data from popos.csv into database."""
 
     print "Privately-Owned Public Open Space"
-
-    # Delete all rows in table, so we're not creating duplicate entries
-    # if we need to run this a second time
-    # Popos.query.delete()
 
     # Read popos.csv file and parse data
     for row in open("seed_data/popos.csv"):
@@ -32,7 +26,6 @@ def load_popos():
         db.session.add(park)
         db.session.commit()
 
-
         popos = Popos(park_id=park.park_id,
                       address=address,
                       popos_type=popos_type)
@@ -44,24 +37,10 @@ def load_popos():
     print "Committed to DB"
 
 
-# parks object
-# session.add(park)
-# session.flush()
-# session.refresh(park)
-# then can take that object and get its ID
-# park.park_id
-# then put this in the popos table
-# then commit everything at the end
-
-
 def load_posm():
     """Load Park & Open Space Map data from JSON into database."""
 
     print "Park & Open Spaces"
-
-    # Delete all rows in table, so we're not creating duplicate entries
-    # if we need to run this a second time
-    # Posm.query.delete()
 
     # Call API and parse data
     r = requests.get('https://data.sfgov.org/resource/94uf-amnx.json')
@@ -97,8 +76,6 @@ def load_posm():
         db.session.commit()
     
     print "Committed to DB"
-
-
 
 ##############################################################################
 
