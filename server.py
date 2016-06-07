@@ -4,9 +4,10 @@ from flask import Flask, render_template, redirect, request, flash, session, jso
 from flask_debugtoolbar import DebugToolbarExtension
 from jinja2 import StrictUndefined
 import json
+from pprint import pprint
 from geojson import Feature, Point, FeatureCollection
 from model import db, connect_to_db, Park, Popos, Posm, User, Favorite
-from geofunctions import geocode_location, get_routing_times
+from geofunctions import geocode_location, get_routing_times, get_directions
 from mappingfunctions import format_origin, find_close_parks, add_routing_time
 
 
@@ -27,16 +28,11 @@ def index():
     # rendered on page load.
     user_id = session.get('user')
 
-    # if user_id:
-        # Get user object
-        # user = User.query.filter_by(user_id = user_id).first()
-        # already have user_id from the session
-    
-    parks = Park.query.all()
-    # parks = Park.query.filter(~Park.name.contains('Playground'))
+    parks = Park.query.filter(~Park.name.contains('Playground'))
     
     geojson_parks = FeatureCollection([park.create_geojson_object(user_id)
-                                       for park in parks])
+                                       for park
+                                       in parks])
     parks = json.dumps(geojson_parks)
 
 
@@ -46,18 +42,22 @@ def index():
 
 @app.route('/current-location.json', methods=['POST'])
 def get_current_location():
-    """Find user's current location based on browser data."""
+    """Find user's current location from HTML5 Geolocation API."""
 
     latitude = request.form.get('latitude')
     longitude = request.form.get('longitude')
 
-    return jsonify(status='success', latitude=latitude, longitude=longitude)
+    return jsonify(status='success',
+                   latitude=latitude,
+                   longitude=longitude)
 
 
 @app.route('/query', methods=['GET'])
 def query_parks():
     """Return results from users' query based on search profile."""
     
+    user_id = session.get('user')
+
     origin = request.args.get('origin')
     time = request.args.get('time')
     routing = request.args.get('routing')
@@ -67,57 +67,53 @@ def query_parks():
     origin = format_origin(origin)
 
     if playgrounds == None:
-        # Get parks that don't include "playground" in the name
+    # Get parks that don't include "playground" in the name
         parks = Park.query.filter(~Park.name.contains('Playground'))
     else:
-        # Get all park objects in database
+    # Get all park objects in database
         parks = Park.query.all()
-
+    
     # Create a dictionary containing park objects within the bounding radius heuristic
     close_parks = find_close_parks(origin, time, routing, parks)
 
     # Create a list of GeoJSON objects for close parks
-    geojson_destinations = [park.create_geojson_object() for park in close_parks.values()]
+    geojson_destinations = [park.create_geojson_object(user_id)
+                            for park
+                            in close_parks.values()]
         # [{'geometry': {'type': 'Point', 'coordinates': [-122.40487, 37.79277]}, 'type': 'Feature', 'properties': {'name': u'600 California St', 'address': u'600 California St'}}, {'geometry': {'type': 'Point', 'coordinates': [-122.40652, 37.78473]}, 'type': 'Feature', 'properties': {'name': u'Westfield Sky Terrace (Wesfield Center Mall)', 'address': u'845 Market St'}},
 
     # Convert origin coordinates to GeoJSON object
     geojson_origin = Feature(geometry=Point((origin.longitude, origin.latitude)))
-        # Point(reverse_coord(geocoded_origin)) --> Feature(geometry=geojson_origin)
+        # Point(origin) --> Feature(geometry=geojson_origin)
 
     # Create list of GeoJSON objects for get_routing_times argument
     routing_params = [geojson_origin] + geojson_destinations
         # TODO: try .insert to list (but don't want to change geojson_destinations to use later)
-        # Will add_rounting_times func take these params as two separate lists?
+        # Will add_rounting_time() take these params as two separate lists?
     
     # Create distance matrix (routing time in seconds)
     routing_times = get_routing_times(routing_params, routing)
 
     # Create markers for the results of the user's query by adding each routing time to a park's GeoJSON properties
     all_markers = add_routing_time(geojson_destinations, routing_times)
-    # print type(all_markers) #LIST
-    # print type(all_markers[0]) #DICT
+        # print type(all_markers) #LIST
+        # print type(all_markers[0]) #DICT
 
     markers = json.dumps(FeatureCollection(all_markers))
-    # print type(markers) #STRING
+        # print type(markers) #STRING
 
+    session['origin'] = [origin.longitude, origin.latitude]
+    session['routing'] = routing
 
     return render_template('query.html',
                             origin=origin,
                             time=time,
-                            # close_parks=close_parks,
+                            routing=routing,
                             geojson_origin=geojson_origin,
                             geojson_destinations=geojson_destinations,
-                            # routing_times=routing_times,
                             all_markers=all_markers,
                             markers=markers)
 
-
-# @app.route('/distances.json', methods=['POST'])
-# def calc_dist():
-
-#     grid = request.form.get('grid')
-
-#     print grid
 
 @app.route('/update-favorite.json', methods=['POST'])
 def update_favorites():
@@ -156,7 +152,8 @@ def update_favorites():
 
         else:
             # Instantiate a favorite object with the information provided.
-            favorite = Favorite(fav_park_id=park_id, fav_user_id=user)
+            favorite = Favorite(fav_park_id=park_id, 
+                                fav_user_id=user)
             # print "This park is being added to user's favorites", favorite.fav_park_id
 
             db.session.add(favorite)
@@ -165,9 +162,9 @@ def update_favorites():
             return jsonify(status='successfully added favorite')
 
     else:
-        # if there's no session user, add favorites to session so they're temporarily saved
         pass
-        # TODO: update later
+        # TODO: if there's no session user, add favorites to session so they're
+        # temporarily saved
 
     # return jsonify(status='successfully changed favorite')
 
@@ -187,7 +184,21 @@ def return_favorites():
                             favorites=favorites)
 
 
-@app.route('/login', methods=['POST']) #note: took out 'GET' method
+@app.route('/directions.json', methods=['POST'])
+def return_directions():
+    """Display directions to a specific park."""
+
+    route = session.get('origin')
+    routing = session.get('routing')
+    print request.form
+    #Use json.loads to read the string
+    
+    results = get_directions(route, routing)
+    
+    return jsonify(results)
+    
+
+@app.route('/login', methods=['POST'])
 def login():
     """Show login form."""
 
@@ -212,9 +223,7 @@ def process_login():
             flash("You're logged in.")
             return redirect('/')
 
-        else:  # if password does not match database
-            # flash message, stay on page
-            
+        else:            
             flash('Your password is incorrect. Please enter your information again or register as a new user.')
             return redirect('/login')
 
@@ -238,9 +247,10 @@ def process_registration():
     password = request.form.get('password')
 
     # instantiate a user object with the information provided
-    new_user = User(email=email, password=password)
+    new_user = User(email=email, 
+                    password=password)
     
-    # add user to session and commit to database
+    # add user to db session and commit to db
     db.session.add(new_user)
     db.session.commit()
 
