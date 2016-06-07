@@ -19,6 +19,7 @@
 
 var origin = {{ geojson_origin | safe }};
 var routing = "{{ routing }}";
+var time = {{time}};
 
 var map = new mapboxgl.Map({
     container: 'map',
@@ -100,6 +101,7 @@ map.on('load', function () {
         "id": "park_markers",
         "type": "circle",
         "source": "park_markers",
+        "filter": ["<=", 'routing_mins', time],
         "layout": {
             "visibility": 'visible'
         },
