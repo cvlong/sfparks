@@ -1,7 +1,7 @@
 """SFparks."""
 
 from flask import Flask, render_template, redirect, request, flash, session, jsonify
-from flask_debugtoolbar import DebugToolbarExtension
+# from flask_debugtoolbar import DebugToolbarExtension
 from jinja2 import StrictUndefined
 import json
 from pprint import pprint
@@ -17,7 +17,7 @@ app = Flask(__name__)
 app.secret_key = "ABCDEF"
 
 # Raise an error for undefined variables in Jinja2
-app.jinja_env.undefined = StrictUndefined
+# app.jinja_env.undefined = StrictUndefined
 
 
 @app.route('/')
@@ -98,7 +98,6 @@ def query_parks():
     all_markers = add_routing_time(geojson_destinations, routing_times)
         # print type(all_markers) #LIST
         # print type(all_markers[0]) #DICT
-    print all_markers
 
     markers = json.dumps(FeatureCollection(all_markers))
         # print type(markers) #STRING
@@ -174,8 +173,6 @@ def update_favorites():
 def return_favorites():
     """Display user's favorite parks."""
 
-    # TODO: Add individual <user> to URL? But no username for now, just email.
-
     user = session.get('user')
     
     if user:
@@ -191,7 +188,8 @@ def return_directions():
 
     route = session.get('origin')
     routing = session.get('routing')
-    print request.form
+    coords = request.get('coords')
+    # print request.form
     #Use json.loads to read the string
     
     results = get_directions(route, routing)
@@ -273,15 +271,22 @@ def logout():
     return redirect('/')
 
 
+@app.route('/about')
+def show_about_page():
+    """Show about page."""
+
+    return render_template('about.html')
+    
+
 ##############################################################################
 
 if __name__ == "__main__":
     # Set debug=True to invoke the DebugToolbarExtension
-    app.debug = True
+    # app.debug = True
 
     connect_to_db(app)
 
     # Use the DebugToolbar
-    DebugToolbarExtension(app)
+    # DebugToolbarExtension(app)
 
     app.run()
