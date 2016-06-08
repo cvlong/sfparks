@@ -94,7 +94,10 @@ map.on('load', function () {
         "id": "fav-markers",
         "type": "symbol",
         "source": "park_markers",
-        "filter": ["==", 'favorite', 'favorite'],
+        "filter": ["all",
+            ["==", 'favorite', 'favorite'],
+            ["<=", 'routing_mins', time]
+        ],
         "layout": {
             'visibility': 'visible',
             'icon-image': 'star-15',
