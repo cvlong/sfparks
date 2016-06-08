@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}SFparks - About{% endblock %}
+{% block body %}
+
+<div id='about'>
+<h3>About <span style='font-family: Montserrat', sans-serif>SFparks</span></h3>
+<br>
+SFparks is an interactive web application using Flask MVC framework for easily searching the city for parks and public open spaces based on a user preferences. Whether you only have 5 minutes to stroll somewhere nearby or long break to take a 20 minute bike ride, SFparks has got you covered. This app takes into account how long a user will allot for travel and whether they’re walking or cycling in order to identify parks and open spaces that match their routing profile. Users can also keep track of their favorite parks and save their search results.
+<br><br>
+On the server side, park data is stored in a PostgreSQL database. The database is seeded with open source data available on SF OpenData, including <a href="https://data.sfgov.org/Culture-and-Recreation/Park-and-Open-Space-Map/4udc-s3pr">San Francisco Parks and Open Spaces</a> and downtown's <a href="https://data.sfgov.org/Geographic-Locations-and-Boundaries/Privately-Owned-Public-Open-Space-POPOS-and-Public/55um-v9vc">Privately Owned Public Open Spaces</a> data.
+<br><br>
+Enjoy SFparks! Feel free to <a href="mailto:cvlong@gmail.com">get in touch</a> or <a href="https://www.linkedin.com/in/cvlong">connect on LinkedIn</a> with any questions.
+<div>
+{% endblock %}
