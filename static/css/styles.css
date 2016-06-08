@@ -1,25 +1,15 @@
-
 body {
     margin:0;
     padding:0;
+    font-family: 'Roboto', sans-serif;
 }
 
-.btn {
-    position:relative;
-    z-index: 2;
+.navbar-brand {
+    font-weight: bold;
+    font-size: 26px;
+    font-family: 'Montserrat', sans-serif;
 }
 
-#search-btn {
-    left: 20px;
-}
-
-#reset-map {
-    position: fixed;
-    bottom:20px;
-    left: 20px;
-}
-
-/* Layout for map - same ID for map on homepage and query results page */
 #map {
     position:absolute;
     top:50px;
@@ -28,26 +18,51 @@ body {
     width:100%;
 }
 
+#use-current-location {
+    width: 150px;
+}
+
+.btn {
+    position:relative;
+    z-index: 2;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    width: 130px;
+    text-align: center;
+}
+
+#search-btn {
+    position: absolute;
+    top: 90px;
+    left: 15px;
+}
+
+#reset-map {
+    position: fixed;
+    top: 130px;
+    left: 15px;
+}
+
 /* Menu boxes for toggling layers on map */
 #menu {
     background: #fff;
     position: absolute;
     z-index: 1;
-    top: 100px; 
-    right: 10px;
+    top: 90px; 
+    right: 15px;
     border-radius: 3px;
-    width: 120px;
+    width: 130px;
     border: 1px solid rgba(0,0,0,0.4);
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 #menu a {
-    font-size: 13px;
+    font-size: 14px;
     color: #404040;
     display: block;
     margin: 0;
     padding: 0;
-    padding: 10px;
+    padding: 8px;
     text-decoration: none;
     border-bottom: 1px solid rgba(0,0,0,0.25);
     text-align: center;
@@ -71,29 +86,37 @@ body {
     background: #3074a4;
 }
 
-/* Popup boxes - same ID for popups on homepage and query results page  */
 .mapboxgl-popup {
     max-width: 400px;
-    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    font-size: 12px/20px;
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
+    align-items: center;
 }
 
-.marker-title {
-    font-weight: 700;
+.mapboxgl-popup-content {
+    background:rgba(255,255,255,0.8) !important;
 }
 
-/* favorite class */
 .favorite {
     color: red;
-    font-family: Courier;
 }
 
 .not_favorite {
     color: blue;
 }
 
+.marker-title {
+    font-weight: 700;
+}
+
 .form {
     max-width: 300px;
     padding-left: 20px;
+}
+
+#about {
+    padding: 50px;
 }
 
 /* for helper function to show lat/lng on mouse hover */

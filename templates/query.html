@@ -5,6 +5,10 @@
 {% block body %}
     
     <div>
+        <button id="search-btn" class="btn btn-primary search">Try new search</button>
+    </div>
+
+    <div>
         <button class="btn btn-default" id="reset-map">Reset map view</button>
     </div>
 
@@ -19,7 +23,7 @@
 
 var origin = {{ geojson_origin | safe }};
 var routing = "{{ routing }}";
-var time = {{time}};
+var time = {{ time }};
 
 var map = new mapboxgl.Map({
     container: 'map',
@@ -42,7 +46,7 @@ park_markers.features.forEach(function(feature) {
     bounds.extend(feature.geometry.coordinates);
 });
 
-map.fitBounds(bounds, {padding: '20'});
+map.fitBounds(bounds);
 
 // Reset map view presented on load
 $('#reset-map').on('click', function() {
@@ -50,53 +54,27 @@ $('#reset-map').on('click', function() {
 });
 
 map.on('load', function () {
-    // Add park marker data from previously defined GeoJSON source.
     map.addSource("park_markers", park_markers_source);
 
-    // // Add turf data.
-    // map.addSource('turf-data', {
-    //     "type": "geojson",
-    //     "data": grid
-    // });
-
-    // // Add turf.
-    // map.addLayer({
-    //     "id": "turf-data",
-    //     "type": "circle",
-    //     "source": "turf-data",
-    //     "paint": {
-    //         "circle-color": "#f00",
-    //         "circle-radius": 5
-    //     }
-    // });
-
-    // grid.features.forEach(function (feature) {
-    //     feature.properties["marker-color"] = "#6BC65F";
-    //     feature.properties["marker-size"] = "small";
-    // });
-
-    // Add origin point as a new GeoJSON source.
     map.addSource('origin-point', {
         "type": "geojson",
         "data": origin
     });
 
-    // Add a layer showing the origin point.
     map.addLayer({
         "id": "origin-point",
         "type": "circle",
         "source": "origin-point",
         "layout": {
-            'visibility': 'visible'
+            'visibility': 'visible',
         },
-        "paint": {
-            "circle-radius": 12,
-            "circle-color": "#007cbf",
-            "circle-opacity": 0.9
+        'paint': {
+            'circle-radius': 13,
+            'circle-color': '#337ab7',
+            'circle-opacity': 1
         }
     });
 
-    // Add a layer showing the markers.
     map.addLayer({
         "id": "park_markers",
         "type": "circle",
@@ -107,41 +85,25 @@ map.on('load', function () {
         },
         'paint': {
             'circle-radius': 11,
-            // 'circle-radius': { // interpolate based on routing distance??
-            //     'property': routing_time,
-            //     'stops': [
-            //         [routing_time*0.33, 9],
-            //         [routing_time*0.66, 11],
-            //         [routing_time, 13]
-            //     ]
-            // },
-            'circle-color': '#00b300',
-            'circle-opacity': 0.8
+            'circle-color': '#FF6600',
+            'circle-opacity': 0.9
         }
     });
 
-    // Add a layer showing a user's favorites.
     map.addLayer({
         "id": "fav-markers",
-        "type": "circle",
+        "type": "symbol",
         "source": "park_markers",
         "filter": ["==", 'favorite', 'favorite'],
         "layout": {
-            'visibility': 'visible' 
-        },
-        'paint': { 
-            'circle-radius': 11, // units in pixels
-            'circle-color': '#ff00bf',
-            'circle-opacity': 1.0
+            'visibility': 'visible',
+            'icon-image': 'star-15',
+            'icon-size': 1.5
         },
     });
 });
 
-
 // Add functionality for toggling layers via menu selection.
-// addLayer('Privately Owned Public Open Spaces', 'popos_markers');
-// addLayer('SF public parks', 'posm_markers');
-// addLayer('Parks', 'park_markers');
 addLayer('My Favorites', 'fav-markers');
 
 function addLayer(name, id) {
@@ -168,8 +130,10 @@ function addLayer(name, id) {
     var layers = document.getElementById('menu');
     layers.appendChild(link);
 }
-// End toggle layers.
 
+$('#search-btn').on('click', function() {
+    window.location.href = "/";
+})
 
 // Helper function for lat/lng verification
 // map.on('mousemove', function (e) {
@@ -180,9 +144,8 @@ function addLayer(name, id) {
 //         // e.lngLat is the longitude, latitude geographical position of the event
 //         JSON.stringify(e.lngLat);
 // });
-
-
 </script>
+
 <script src='/static/js/map.js'></script>
 <script src='/static/js/turf.js'></script>
 

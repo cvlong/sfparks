@@ -19,11 +19,15 @@
       </div>
       <div class="modal-body">
         <form action="/query" id="search-input" method="get" name="search-input">
+            <div class="row">
+            <div class="col-xs-8">
             <label for="field-origin">Where are you starting from?</label>
             <input id="field-origin" name="origin" type="text"><br>
-            <div>
+            </div>
+            <div class="col-xs-4">
                 <button class="btn btn-default" id="use-current-location">Use current location</button>
                 <span id="output"></span>
+                </div>
             </div>
             <br>
             <label for="dropdown-maxtime">How much time do you have?</label> <select name="time">
@@ -92,7 +96,7 @@ var park_markers_source = new mapboxgl.GeoJSONSource({
     })
 
 // Fit map to boundaries of displayed markers
-var bounds = [[-122.527, 37.753], [-122.370, 37.812]]
+var bounds = [[-122.527, 37.753], [-122.370, 37.812]];
 
 map.fitBounds(bounds, {padding: '20'});
 
@@ -101,13 +105,9 @@ $('#reset-map').on('click', function() {
     map.fitBounds(bounds, {padding: '-20'});
 });
 
-
 map.on('load', function () {
-
-    // Add park marker data from previously defined GeoJSON source.
     map.addSource("park_markers", park_markers_source);
 
-    // Add a layer showing the POPOS markers.
     map.addLayer({
         "id": "popos_markers", // unique layer name
         "type": "circle", // how the layer is rendered (symbol or circle)
@@ -119,13 +119,12 @@ map.on('load', function () {
             'visibility': 'visible' 
         },
         'paint': {
-            'circle-radius': 8, // units in pixels
-            'circle-color': "#ff0000",
-            'circle-opacity': 0.7
+            'circle-radius': 9, // units in pixels
+            'circle-color': "red",
+            'circle-opacity': 0.6
         }
     });
 
-    // Add a layer showing the POSM markers.
     map.addLayer({
         "id": "posm_markers",
         "type": "circle",
@@ -135,27 +134,20 @@ map.on('load', function () {
             'visibility': 'visible' 
         },
         'paint': { 
-            'circle-radius': 8, // units in pixels
-            'circle-color': '#1aa3ff',
-            'circle-opacity': {
-                "stops": [[3, 0.2], [15,0.7]] // interpolate values based on acreage?
-            }
+            'circle-radius': 9, // units in pixels
+            'circle-color': '#FF6700',
+            'circle-opacity': 0.9
         }
     });
 
-    // Add a layer showing a user's favorites.
     map.addLayer({
         "id": "fav-markers",
-        "type": "circle",
+        "type": "symbol",
         "source": "park_markers",
         "filter": ["==", 'favorite', 'favorite'],
         "layout": {
-            'visibility': 'visible' 
-        },
-        'paint': { 
-            'circle-radius': 11, // units in pixels
-            'circle-color': '#ff00bf',
-            'circle-opacity': 1.0
+            'visibility': 'visible',
+            'icon-image': 'star-15',
         },
     });
 })
@@ -189,8 +181,6 @@ function addLayer(name, id) {
     var layers = document.getElementById('menu');
     layers.appendChild(link);
 }
-// End toggle layers.
-
 
 // Collect user's current location via browser.
 $('#use-current-location').on('click', findCurrentLocation);

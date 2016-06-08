@@ -8,6 +8,9 @@
   <title>{% block title %} {% endblock %}</title>
   
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
   <link rel="icon" href="/static/pin-glyph.png" type="image/gif" sizes="16x16">
   <link rel="stylesheet" type="text/css" href="/static/css/styles.css" />
   <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.18.0/mapbox-gl.css' rel='stylesheet' />
@@ -17,6 +20,7 @@
 
   <script src="https://code.jquery.com/jquery.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
  
   {% block head %} {% endblock %}
 </head>
@@ -46,7 +50,7 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav navbar-left">
-        <li><a href="#">About</a></li>
+        <li><a href="/about">About</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
@@ -65,20 +69,13 @@
   </div><!-- /.container-fluid -->
 </nav>
 
-<div class="alert alert-warning alert-dismissible" role="alert">
-  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-  {% for message in get_flashed_messages() %}
-    <li>{{ message }}</li>
-  {% endfor %}
-</div>
 
-<div class="flash-message">
-  <ul>
-    {% for message in get_flashed_messages() %}
-      <li>{{ message }}</li>
-    {% endfor %}
-  </ul>
-</div>
+  {% for message in get_flashed_messages() %}
+    <div class="alert alert-success" role="alert">
+    <li>{{ message }}</li>
+    </div>
+  {% endfor %}
+
 
 
 {% block body %} {% endblock %}
