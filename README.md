@@ -43,15 +43,16 @@ To make the final distances API call less 'expensive', the database is first que
 #### Adding favorites
 If a user is logged in, they can access or update their favorite parks through the pop-up window, which appears when hovering over a park marker on the map. To add or change a favorite, a user can toggle the favorite button; this event will:
 - Dynamically update the button’s CSS class as a UI indicator that the state has changed,
-- Send an Ajax request serialized as JSON to the server to update the database (changing the park’s 'favorite' value for the specific user), and
+- Send an Ajax request serialized as JSON to the server to update the database (changing the park’s 'favorite' value for the specific user),
 - Rewrite GeoJSON object’s properties, and re-renders the layer onto the map with this updated data source (so the next time the user hovers over the park, the pop-up shows the correct state of the user’s favorite).
 
 ### <a name="next"></a>Next steps & improvements
-- Continue to develop testing
-- Add Shapefile data using PostGIS (geospatial database) to store and serve spatial data dynamically; use the GeoAlchemy ORM
-- Incorporate functionality based on search parameters for two users (query for intersecting parks based off of two different routing profiles)
-- Make the structure of my code more object oriented by break functions into classes
+- Continue to add testing.
+- Add Shapefile data using PostGIS (geospatial database) to store and serve spatial data dynamically; use the GeoAlchemy ORM.
+- Incorporate functionality based on search parameters for two users (query for intersecting parks based off of two different routing profiles).
+- Make the structure of my code more object oriented by break functions into classes.
 
 ### <a name="author"></a>Author
 Christina Long is a Software Engineer in San Francisco, CA.
+
 [LinkedIn](https://www.linkedin.com/in/cvlong) | [Email](cvlong@gmail.com) 
