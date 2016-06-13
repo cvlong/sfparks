@@ -56,6 +56,5 @@ If a user is logged in, they can access or update their favorite parks through t
 - Make the structure of my code more object oriented by break functions into classes.
 
 ### <a name="author"></a>Author
-Christina Long is a Software Engineer in San Francisco, CA.
-
+Christina Long is a Software Engineer in San Francisco, CA.  
 [LinkedIn](https://www.linkedin.com/in/cvlong) | [Email](cvlong@gmail.com) 
