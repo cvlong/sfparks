@@ -17,7 +17,7 @@ Need to take a break outdoors? SFparks is an interactive web application that di
 - Jinja
 - Javascript
 - jQuery
-- Ajax
+- AJAX
 - Bootstrap
 - HTML
 - CSS
@@ -27,7 +27,7 @@ Need to take a break outdoors? SFparks is an interactive web application that di
 Dependencies are listed in requirements.txt
 
 ### <a name="overview"></a>Overview
-SFparks uses HTML5, CSS, and Javascript on the client side and leverages the Mapbox API for data visualization. All interactions with the back end are managed through Ajax for a better user experience. Park data is stored in a PostgreSQL database, which has been seeded with open source data available on SF OpenData, including [San Francisco Parks and Open Spaces](https://data.sfgov.org/Culture-and-Recreation/Park-and-Open-Space-Map/4udc-s3pr) and downtown's [Privately Owned Public Open Spaces](https://data.sfgov.org/Geographic-Locations-and-Boundaries/Privately-Owned-Public-Open-Space-POPOS-and-Public/55um-v9vc) data. The app runs on Flask, a Python web framework based on the Werkzeug module and Jinja2 template engine, and uses SQLAlchemy as the ORM.
+SFparks uses HTML5, CSS, and Javascript on the client side and leverages the Mapbox API for data visualization. All interactions with the back end are managed through AJAX for a better user experience. Park data is stored in a PostgreSQL database, which has been seeded with open source data available on SF OpenData, including [San Francisco Parks and Open Spaces](https://data.sfgov.org/Culture-and-Recreation/Park-and-Open-Space-Map/4udc-s3pr) and downtown's [Privately Owned Public Open Spaces](https://data.sfgov.org/Geographic-Locations-and-Boundaries/Privately-Owned-Public-Open-Space-POPOS-and-Public/55um-v9vc) data. The app runs on Flask, a Python web framework based on the Werkzeug module and Jinja2 template engine, and uses SQLAlchemy as the ORM.
 
 ### <a name="how"></a>How it works
 When SFparks first loads, the homepage displays all parks and open spaces queried from the database. If a user is logged in, their favorite parks will also be mapped.
@@ -46,7 +46,7 @@ To make the final distances API call less 'expensive', the database is first que
 #### Adding favorites
 If a user is logged in, they can access or update their favorite parks through the pop-up window, which appears when hovering over a park marker on the map. To add or change a favorite, a user can toggle the favorite button; this event will:
 - Dynamically update the button’s CSS class as a UI indicator that the state has changed,
-- Send an Ajax request serialized as JSON to the server to update the database (changing the park’s 'favorite' value for the specific user),
+- Send an AJAX request serialized as JSON to the server to update the database (changing the park’s 'favorite' value for the specific user),
 - Rewrite GeoJSON object’s properties, and re-renders the layer onto the map with this updated data source (so the next time the user hovers over the park, the pop-up shows the correct state of the user’s favorite).
 
 ### <a name="next"></a>Next steps & improvements
@@ -56,5 +56,5 @@ If a user is logged in, they can access or update their favorite parks through t
 - Make the structure of my code more object oriented by break functions into classes.
 
 ### <a name="author"></a>Author
-Christina Long is a Software Engineer in San Francisco, CA.__
+Christina Long is a Software Engineer in San Francisco, CA.
 [LinkedIn](https://www.linkedin.com/in/cvlong) | [Email](cvlong@gmail.com) 
