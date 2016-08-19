@@ -1,5 +1,6 @@
 """SFparks."""
 
+import os
 from flask import Flask, render_template, redirect, request, flash, session, jsonify
 # from flask_debugtoolbar import DebugToolbarExtension
 from jinja2 import StrictUndefined
@@ -12,9 +13,7 @@ from mappingfunctions import format_origin, find_close_parks, add_routing_time
 
 
 app = Flask(__name__)
-
-# Required to use Flask sessions and the debug toolbar
-app.secret_key = "ABCDEF"
+app.config['SECRET_KEY'] = os.environ.get("FLASK_SECRET_KEY", "abcdef")
 
 # Raise an error for undefined variables in Jinja2
 # app.jinja_env.undefined = StrictUndefined
@@ -277,6 +276,11 @@ def show_about_page():
     """Show about page."""
 
     return render_template('about.html')
+
+
+@app.route("/error")
+def error():
+    raise Exception("Error!")
     
 
 ##############################################################################
@@ -291,5 +295,5 @@ if __name__ == "__main__":
     # DebugToolbarExtension(app)
 
     PORT = int(os.environ.get("PORT", 5000))
-    # DEBUG = "NO_DEBUG" not in os.environ
+    DEBUG = "NO_DEBUG" not in os.environ
     app.run(host="0.0.0.0", port=PORT, debug=DEBUG)
