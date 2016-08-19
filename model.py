@@ -159,12 +159,11 @@ class Favorite(db.Model):
 
 ##############################################################################
 
-def connect_to_db(app):
+def connect_to_db(app, db_uri=None):
     """Connect database to Flask app."""
 
-    # Configure to use PostgreSQL database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///sfparks'
-    app.config['SQLALCHEMY_ECHO']=True
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri or 'postgresql:///sfparks'
+    app.config['SQLALCHEMY_ECHO']=False
     db.app = app
     db.init_app(app)
 
