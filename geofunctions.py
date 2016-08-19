@@ -37,7 +37,7 @@ def geocode_location(location):
 
 
 # def get_routing_time(origin, destinations, routing):
-    # First argument = list w/ origin geojson object + geojson objects of all parks
+#     First argument = list w/ origin geojson object + geojson objects of all parks
 
 def get_routing_times(routing_list, routing):
     """Use Mapbox Distance API to find routing time from origin to a list of features."""
@@ -62,11 +62,12 @@ def get_routing_times(routing_list, routing):
         # TODO: if durations not in response.json print response.json
         # Log in log file; then say "an error has occurred please try again"
 
-def get_directions(route, routing):
-    """Use Mapbox Directions API to find routing directions between points."""
 
-    response = service1.directions(routing)
+# def get_directions(route, routing):
+#     """Use Mapbox Directions API to find routing directions between points."""
 
-    return response.json()
+#     response = service1.directions(routing)
+
+#     return response.json()
 
 
