@@ -29,15 +29,14 @@ def index():
     user_id = session.get('user')
 
     parks = Park.query.filter(~Park.name.contains('Playground'))
-    
-    geojson_parks = FeatureCollection([park.create_geojson_object(user_id)
+
+    geo_parks = FeatureCollection([park.create_geojson_object(user_id)
                                        for park
                                        in parks])
-    parks = json.dumps(geojson_parks)
-
+    # parks = json.dumps(geojson_parks)
 
     return render_template('homepage.html',
-                            parks=parks)
+                            parks=geo_parks)
 
 
 @app.route('/current-location.json', methods=['POST'])
@@ -66,12 +65,14 @@ def query_parks():
     # Determine whether origin input is an address or lat/lng pair.
     origin = format_origin(origin)
 
-    if playgrounds == None:
-    # Get parks that don't include "playground" in the name
-        parks = Park.query.filter(~Park.name.contains('Playground'))
-    else:
-    # Get all park objects in database
-        parks = Park.query.all()
+    parks = Park.query.filter(~Park.name.contains('Playground'))
+
+    # if playgrounds == None:
+    # # Get parks that don't include "playground" in the name
+    #     parks = Park.query.filter(~Park.name.contains('Playground'))
+    # else:
+    # # Get all park objects in database
+    #     parks = Park.query.all()
     
     # Create a dictionary containing park objects within the bounding radius heuristic
     close_parks = find_close_parks(origin, time, routing, parks)
@@ -90,7 +91,7 @@ def query_parks():
     routing_params = [geojson_origin] + geojson_destinations
         # TODO: try .insert to list (but don't want to change geojson_destinations to use later)
         # Will add_rounting_time() take these params as two separate lists?
-    
+
     # Create distance matrix (routing time in seconds)
     routing_times = get_routing_times(routing_params, routing)
 
@@ -289,4 +290,6 @@ if __name__ == "__main__":
     # Use the DebugToolbar
     # DebugToolbarExtension(app)
 
-    app.run()
+    PORT = int(os.environ.get("PORT", 5000))
+    # DEBUG = "NO_DEBUG" not in os.environ
+    app.run(host="0.0.0.0", port=PORT, debug=DEBUG)
