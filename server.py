@@ -8,7 +8,7 @@ import json
 from pprint import pprint
 from geojson import Feature, Point, FeatureCollection
 from model import db, connect_to_db, Park, Popos, Posm, User, Favorite
-from geofunctions import geocode_location, get_routing_times, get_directions
+from geofunctions import geocode_location, get_routing_times
 from mappingfunctions import format_origin, find_close_parks, add_routing_time
 
 
