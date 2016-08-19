@@ -43,12 +43,12 @@
                 <option value="20">
                     20 mins.
                 </option>
-                <option value="30">
+<!--                 <option value="30">
                     30 mins.
                 </option>
                 <option value="45">
                     45 mins.
-                </option>
+                </option> -->
             </select><br>
             <br>
             <label for="field-routing">How will you get there?</label>
@@ -96,7 +96,7 @@ var park_markers_source = new mapboxgl.GeoJSONSource({
     })
 
 // Fit map to boundaries of displayed markers
-var bounds = [[-122.527, 37.753], [-122.370, 37.812]];
+var bounds = [[-122.529, 37.743], [-122.370, 37.812]];
 
 map.fitBounds(bounds, {padding: '20'});
 
