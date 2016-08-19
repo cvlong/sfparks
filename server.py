@@ -289,7 +289,7 @@ if __name__ == "__main__":
     # Set debug=True to invoke the DebugToolbarExtension
     # app.debug = True
 
-    connect_to_db(app)
+    connect_to_db(app, os.environ.get("DATABASE_URL"))
 
     # Use the DebugToolbar
     # DebugToolbarExtension(app)
