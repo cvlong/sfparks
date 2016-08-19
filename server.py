@@ -1,6 +1,9 @@
 """SFparks."""
 
 import os
+import sys
+import logging
+
 from flask import Flask, render_template, redirect, request, flash, session, jsonify
 # from flask_debugtoolbar import DebugToolbarExtension
 from jinja2 import StrictUndefined
@@ -14,6 +17,9 @@ from mappingfunctions import format_origin, find_close_parks, add_routing_time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("FLASK_SECRET_KEY", "abcdef")
+
+app.logger.addHandler(logging.StreamHandler(sys.stdout))
+app.logger.setLevel(logging.ERROR)
 
 # Raise an error for undefined variables in Jinja2
 # app.jinja_env.undefined = StrictUndefined
