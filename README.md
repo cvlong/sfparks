@@ -31,16 +31,19 @@ SFparks uses HTML5, CSS, and Javascript on the client side and leverages the Map
 
 ### <a name="how"></a>How it works
 When SFparks first loads, the homepage displays all parks and open spaces queried from the database. If a user is logged in, their favorite parks will also be mapped.
+
 ![Homepage](/static/img/homepage.png)
 
 #### Geocoding & searching
 The user provides a starting location and routing profile for the search query.
 
 For a starting location, the user can input an address which is translated to latitude/longitude coordinates using the Mapbox geocoding API or chose to use their current location, which is filled in to the search form using the HTML5 geolocation API. The user also specifies timing and routing conditions, which are posted to the server with their starting coordinates.
+
 ![Search](/static/img/search.png)
 
 #### Server-side logic
 To make the final distances API call less 'expensive', the database is first queried for parks that fall within a bounding box-based heuristic based on average walking and cycling speeds. The server then calls a method on these Park objects to create GeoJSON objects for each park that meets this criteria. Finally the Mapbox distance API is used to calculate the travel time to each of those parks based on the user’s specified routing profile. The GeoJSON objects are updated with this value and loaded onto a new page that renders a new map layer for parks that are within the travel time + routing profile determined by the user.
+
 ![Search](/static/img/results.png)
 
 #### Adding favorites
@@ -57,4 +60,4 @@ If a user is logged in, they can access or update their favorite parks through t
 
 ### <a name="author"></a>Author
 Christina Long is a Software Engineer in San Francisco, CA.  
-[LinkedIn](https://www.linkedin.com/in/cvlong) | [Email](cvlong@gmail.com) 
+[LinkedIn](https://www.linkedin.com/in/cvlong)
