@@ -19,8 +19,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("FLASK_SECRET_KEY", "abcdef")
 
 # Additional logs for Heroku deployment
-app.logger.addHandler(logging.StreamHandler(sys.stdout))
-app.logger.setLevel(logging.ERROR)
+# app.logger.addHandler(logging.StreamHandler(sys.stdout))
+# app.logger.setLevel(logging.ERROR)
 
 # Raise an error for undefined variables in Jinja2
 # app.jinja_env.undefined = StrictUndefined
