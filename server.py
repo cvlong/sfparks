@@ -1,8 +1,8 @@
 """SFparks."""
 
 import os
-import sys
-import logging
+# import sys
+# import logging
 
 from flask import Flask, render_template, redirect, request, flash, session, jsonify
 # from flask_debugtoolbar import DebugToolbarExtension
@@ -18,6 +18,7 @@ from mappingfunctions import format_origin, find_close_parks, add_routing_time
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("FLASK_SECRET_KEY", "abcdef")
 
+# Additional logs for Heroku deployment
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.ERROR)
 
@@ -300,6 +301,6 @@ if __name__ == "__main__":
     # Use the DebugToolbar
     # DebugToolbarExtension(app)
 
-    PORT = int(os.environ.get("PORT", 5000))
-    DEBUG = "NO_DEBUG" not in os.environ
+    # PORT = int(os.environ.get("PORT", 5000))
+    # DEBUG = "NO_DEBUG" not in os.environ
     app.run(host="0.0.0.0", port=PORT, debug=DEBUG)
