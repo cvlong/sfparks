@@ -79,11 +79,14 @@ class Popos(db.Model):
     park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
     address = db.Column(db.String(150), nullable=False)
     popos_type = db.Column(db.String(100))
+<<<<<<< HEAD
     restroom = db.Column(db.String(20))
     # wifi = db.Column(db.String(20))
     description = db.Column(db.String(1000))
     seating = db.Column(db.String(500))
     hours = db.Column(db.String(50))
+=======
+>>>>>>> 3a1615c6fd2045971d6f7833baa6cec581084d2a
 
     park = db.relationship('Park', backref=db.backref('popos'))
 
@@ -169,8 +172,11 @@ def connect_to_db(app, db_uri=None):
 
     app.config['SQLALCHEMY_DATABASE_URI'] = db_uri or 'postgresql:///sfparks'
     app.config['SQLALCHEMY_ECHO']=False
+<<<<<<< HEAD
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+=======
+>>>>>>> 3a1615c6fd2045971d6f7833baa6cec581084d2a
     db.app = app
     db.init_app(app)
 

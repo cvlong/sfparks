@@ -16,6 +16,7 @@ def load_popos():
         row = row.rstrip()
 
         name, address, latitude, longitude, subj, popos_type = row.split(",")[1:7]
+<<<<<<< HEAD
         restroom, description, seats, hours_type, mapid = row.split(",")[-5:]
         seating = row.split(",")[14]
 
@@ -24,6 +25,8 @@ def load_popos():
 
         if restroom != 'Y':
             restroom = 'N'
+=======
+>>>>>>> 3a1615c6fd2045971d6f7833baa6cec581084d2a
 
         park = Park(park_type='popos',
                     name=name,
@@ -36,6 +39,7 @@ def load_popos():
 
         popos = Popos(park_id=park.park_id,
                       address=address,
+<<<<<<< HEAD
                       popos_type=popos_type,
                       restroom=restroom,
                       description=description,
@@ -43,6 +47,9 @@ def load_popos():
                       hours=hours_type.capitalize())
 
         print popos
+=======
+                      popos_type=popos_type)
+>>>>>>> 3a1615c6fd2045971d6f7833baa6cec581084d2a
 
         # Add popos data to the popos db session & commit session to db
         db.session.add(popos)
