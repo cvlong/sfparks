@@ -66,6 +66,8 @@ def query_parks():
     routing = request.args.get('routing')
     playgrounds = request.args.get('playgrounds')
 
+    print "THIS IS THE ORIGIN WE ARE GETTING FROM THE GET REQUEST"
+    print origin
     # Determine whether origin input is an address or lat/lng pair.
     origin = format_origin(origin)
 
