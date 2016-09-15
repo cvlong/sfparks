@@ -77,6 +77,8 @@ def query_parks():
     # else:
     # # Get all park objects in database
     #     parks = Park.query.all()
+    print "THIS IS THE ORIGIN THAT WE ARE USING TO CALL find_close_parks"
+    print origin
     
     # Create a dictionary containing park objects within the bounding radius heuristic
     close_parks = find_close_parks(origin, time, routing, parks)
