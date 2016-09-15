@@ -5,7 +5,7 @@ import os
 # import logging
 
 from flask import Flask, render_template, redirect, request, flash, session, jsonify
-# from flask_debugtoolbar import DebugToolbarExtension
+from flask_debugtoolbar import DebugToolbarExtension
 from jinja2 import StrictUndefined
 import json
 from pprint import pprint
@@ -23,7 +23,7 @@ app.config['SECRET_KEY'] = os.environ.get("FLASK_SECRET_KEY", "abcdef")
 # app.logger.setLevel(logging.ERROR)
 
 # Raise an error for undefined variables in Jinja2
-# app.jinja_env.undefined = StrictUndefined
+app.jinja_env.undefined = StrictUndefined
 
 
 @app.route('/')
@@ -36,9 +36,7 @@ def index():
 
     parks = Park.query.filter(~Park.name.contains('Playground'))
 
-    geo_parks = FeatureCollection([park.create_geojson_object(user_id)
-                                       for park
-                                       in parks])
+    geo_parks = FeatureCollection([park.create_geojson_object(user_id) for park in parks]) 
     # parks = json.dumps(geojson_parks)
 
     return render_template('homepage.html',

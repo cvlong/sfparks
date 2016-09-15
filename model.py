@@ -2,6 +2,7 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import os
 
 
 # Connect to PostgreSQL database through the Flask-SQLAlchemy helper library. Use
@@ -79,14 +80,11 @@ class Popos(db.Model):
     park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
     address = db.Column(db.String(150), nullable=False)
     popos_type = db.Column(db.String(100))
-<<<<<<< HEAD
-    restroom = db.Column(db.String(20))
-    # wifi = db.Column(db.String(20))
-    description = db.Column(db.String(1000))
-    seating = db.Column(db.String(500))
-    hours = db.Column(db.String(50))
-=======
->>>>>>> 3a1615c6fd2045971d6f7833baa6cec581084d2a
+    # restroom = db.Column(db.String(20))
+    # # wifi = db.Column(db.String(20))
+    # description = db.Column(db.String(1000))
+    # seating = db.Column(db.String(500))
+    # hours = db.Column(db.String(50))
 
     park = db.relationship('Park', backref=db.backref('popos'))
 
@@ -170,13 +168,13 @@ class Favorite(db.Model):
 def connect_to_db(app, db_uri=None):
     """Connect database to Flask app."""
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri or 'postgresql:///sfparks'
-    app.config['SQLALCHEMY_ECHO']=False
-<<<<<<< HEAD
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # app.config['SQLALCHEMY_DATABASE_URI'] = db_uri or 'postgresql:///sfparks'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", 'postgresql:///sfparks')
 
-=======
->>>>>>> 3a1615c6fd2045971d6f7833baa6cec581084d2a
+    app.config['SQLALCHEMY_ECHO']=False
+
+    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
     db.app = app
     db.init_app(app)
 
