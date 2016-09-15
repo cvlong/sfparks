@@ -70,6 +70,8 @@ def query_parks():
     print origin
     # Determine whether origin input is an address or lat/lng pair.
     origin = format_origin(origin)
+    print "THIS IS THE ORIGIN THAT IS COMING FROM format_origin"
+    print origin
 
     parks = Park.query.filter(~Park.name.contains('Playground'))
 
