@@ -1,8 +1,8 @@
 """SFparks."""
 
 import os
-# import sys
-# import logging
+import sys
+import logging
 
 from flask import Flask, render_template, redirect, request, flash, session, jsonify
 from flask_debugtoolbar import DebugToolbarExtension
@@ -19,8 +19,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("FLASK_SECRET_KEY", "abcdef")
 
 # Additional logs for Heroku deployment
-# app.logger.addHandler(logging.StreamHandler(sys.stdout))
-# app.logger.setLevel(logging.ERROR)
+app.logger.addHandler(logging.StreamHandler(sys.stdout))
+app.logger.setLevel(logging.ERROR)
 
 # Raise an error for undefined variables in Jinja2
 app.jinja_env.undefined = StrictUndefined
@@ -294,7 +294,8 @@ if __name__ == "__main__":
     # Set debug=True to invoke the DebugToolbarExtension
     # app.debug = True
 
-    connect_to_db(app, os.environ.get("DATABASE_URL"))
+    # connect_to_db(app, os.environ.get("DATABASE_URL"))
+    connect_to_db(app)
 
     # Use the DebugToolbar
     # DebugToolbarExtension(app)
