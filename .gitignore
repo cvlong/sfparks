@@ -3,3 +3,4 @@ env/
 secrets.sh
 .DS_Store
 /working_files
+heroku_deployment_notes

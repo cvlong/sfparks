@@ -1,8 +1,8 @@
 """SFparks."""
 
 import os
-import sys
-import logging
+# import sys
+# import logging
 
 from flask import Flask, render_template, redirect, request, flash, session, jsonify
 from flask_debugtoolbar import DebugToolbarExtension
@@ -19,8 +19,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("FLASK_SECRET_KEY", "abcdef")
 
 # Additional logs for Heroku deployment
-app.logger.addHandler(logging.StreamHandler(sys.stdout))
-app.logger.setLevel(logging.ERROR)
+# app.logger.addHandler(logging.StreamHandler(sys.stdout))
+# app.logger.setLevel(logging.ERROR)
 
 # Raise an error for undefined variables in Jinja2
 app.jinja_env.undefined = StrictUndefined
@@ -66,12 +66,8 @@ def query_parks():
     routing = request.args.get('routing')
     playgrounds = request.args.get('playgrounds')
 
-    print "THIS IS THE ORIGIN WE ARE GETTING FROM THE GET REQUEST"
-    print origin
     # Determine whether origin input is an address or lat/lng pair.
     origin = format_origin(origin)
-    print "THIS IS THE ORIGIN THAT IS COMING FROM format_origin"
-    print origin
 
     parks = Park.query.filter(~Park.name.contains('Playground'))
 
@@ -81,8 +77,6 @@ def query_parks():
     # else:
     # # Get all park objects in database
     #     parks = Park.query.all()
-    print "THIS IS THE ORIGIN THAT WE ARE USING TO CALL find_close_parks"
-    print origin
     
     # Create a dictionary containing park objects within the bounding radius heuristic
     close_parks = find_close_parks(origin, time, routing, parks)
