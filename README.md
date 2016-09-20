@@ -2,6 +2,8 @@
 
 Need to take a break outdoors? SFparks is an interactive web application that displays parks and public open spaces based on a user’s preferences. This app takes into account how long a user will allot for travel and whether they’re walking or cycling in order to identify parks and open spaces that match their routing profile. Users can also log in to keep track of their favorite parks and save their search results.
 
+https://sfparks.herokuapp.com/
+
 ## Table of Contents
 - [Technologies used](#tech)
 - [Overview](#overview)
@@ -60,4 +62,4 @@ If a user is logged in, they can access or update their favorite parks through t
 
 ### <a name="author"></a>Author
 Christina Long is a Software Engineer in San Francisco, CA.  
-[LinkedIn](https://www.linkedin.com/in/cvlong)
+[Email](mailto:cvlong@gmail.com) | [LinkedIn](https://www.linkedin.com/in/cvlong)
