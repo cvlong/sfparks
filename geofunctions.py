@@ -12,7 +12,7 @@ service1 = Directions(access_token=MB_ACCESS_TOKEN)
 
 
 def geocode_location(location):
-    """Geocodes origin and returnes lng/lat in named tuple."""
+    """Geocodes origin and returns lng/lat in named tuple."""
 
     # Forward geocoding with proximity so results are biased toward given lng/lat
     response = geocoder.forward(location, lon=-122.431, lat=37.773)
@@ -34,6 +34,20 @@ def geocode_location(location):
         # Add else condition
 
 # print geocode_location("55 Main Street")
+
+def reverse_geocode(latitude, longitude):
+    """Reverse geocodes origin coordinates and returns closest address."""
+
+    response = geocoder.reverse(lon=longitude, lat=latitude)
+
+    if response.status_code == 200:
+        full_address = response.geojson()['features'][0]['place_name']
+        street_address = full_address.split(',')
+        
+        return street_address[0]
+
+    else:
+        pass
 
 
 # def get_routing_time(origin, destinations, routing):

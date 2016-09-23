@@ -201,11 +201,9 @@ function findCurrentLocation(evt) {
     function success(position) {
         currentLatitude  = position.coords.latitude;
         currentLongitude = position.coords.longitude;
-        // console.log('latitude: ' + currentLatitude + ' \n longitude: ' + currentLongitude);
         $.post('/current-location.json', {'latitude': currentLatitude, 
                                           'longitude': currentLongitude}, sendLatLngSuccess);
-        $('input#field-origin').val(currentLatitude.toFixed(4) + ',' 
-                                  + currentLongitude.toFixed(4));
+
         output.innerHTML = '';
 
     };
@@ -221,6 +219,8 @@ function findCurrentLocation(evt) {
 
 function sendLatLngSuccess(result) {
     console.log(result.status);
+    var address = result.address;
+    $('input#field-origin').val(address);
     // map.getSource('single-point').setData(ev.result.geometry); // update
 }
 

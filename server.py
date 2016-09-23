@@ -11,8 +11,8 @@ import json
 from pprint import pprint
 from geojson import Feature, Point, FeatureCollection
 from model import db, connect_to_db, Park, Popos, Posm, User, Favorite
-from geofunctions import geocode_location, get_routing_times
-from mappingfunctions import format_origin, find_close_parks, add_routing_time
+from geofunctions import geocode_location, reverse_geocode, get_routing_times
+from mappingfunctions import find_close_parks, add_routing_time
 
 
 app = Flask(__name__)
@@ -30,17 +30,16 @@ app.jinja_env.undefined = StrictUndefined
 def index():
     """Homepage; render all SF parks."""
 
-    # If the user is logged in, add their favorites to the geojson park objects
-    # rendered on page load.
+    # If the user is logged in, display favorite parks on page load
     user_id = session.get('user')
+    waypoints = session.get('waypoints')
 
     parks = Park.query.filter(~Park.name.contains('Playground'))
 
-    geo_parks = FeatureCollection([park.create_geojson_object(user_id) for park in parks]) 
-    # parks = json.dumps(geojson_parks)
+    parks_geojson = FeatureCollection([park.create_geojson_object(user_id) for park in parks]) 
 
     return render_template('homepage.html',
-                            parks=geo_parks)
+                            parks=parks_geojson)
 
 
 @app.route('/current-location.json', methods=['POST'])
@@ -50,9 +49,12 @@ def get_current_location():
     latitude = request.form.get('latitude')
     longitude = request.form.get('longitude')
 
+    address = reverse_geocode(latitude, longitude)
+
     return jsonify(status='success',
                    latitude=latitude,
-                   longitude=longitude)
+                   longitude=longitude,
+                   address=address)
 
 
 @app.route('/query', methods=['GET'])
@@ -61,13 +63,19 @@ def query_parks():
     
     user_id = session.get('user')
 
-    origin = request.args.get('origin')
+    origin_input = request.args.get('origin')
     time = request.args.get('time')
     routing = request.args.get('routing')
     playgrounds = request.args.get('playgrounds')
 
     # Determine whether origin input is an address or lat/lng pair.
-    origin = format_origin(origin)
+    
+
+    origin = geocode_location(origin_input)
+
+
+    # origin = format_origin(origin)
+    # session['waypoints'].append(origin)
 
     parks = Park.query.filter(~Park.name.contains('Playground'))
 
@@ -223,7 +231,8 @@ def process_login():
         # if user in database, check that password is correct
         if password == user.password:
             session['user'] = user.user_id
-            
+            session['waypoints'] = []
+
             flash("You're logged in.")
             return redirect('/')
 
@@ -260,6 +269,7 @@ def process_registration():
 
     # add user to the session; redirect to homepage
     session['user'] = new_user.user_id
+    session['waypoints'] = []
     
     flash("You're logged in.")
     return redirect('/')
@@ -271,6 +281,7 @@ def logout():
 
     # remove user_id from session
     del session['user']
+    del session['waypoints']
     
     flash('You are now logged out.')
     return redirect('/')
