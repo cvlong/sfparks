@@ -38,6 +38,7 @@ class Park(db.Model):
                 'id': self.park_id,
                 'type': self.park_type,
                 'name': self.name,
+                'img_url': self.images[0].image_url,
                 # 'address': None, set for POSM?
                 'marker-symbol': None,
                 'routing_appx:': None,
@@ -115,7 +116,7 @@ class Posm(db.Model):
         """Define how model displays."""
 
         return "<park_id: {}, name: {}>".format(self.park_id,
-                                                self.parks.name)
+                                                self.park.name)
 
 
 class User(db.Model):
@@ -182,7 +183,7 @@ class Image(db.Model):
         """Define how model displays."""
 
         return "<Image url: {}, Park park_id: {}>".format(self.image_url,
-                                                          self.park_id)
+                                                          self.img_park_id)
 
 
 ##############################################################################

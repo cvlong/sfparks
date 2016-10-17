@@ -34,15 +34,10 @@ def index():
     user_id = session.get('user')
     waypoints = session.get('waypoints')
 
-    # parks = Park.query.filter(~Park.name.contains('Playground')). \
+    parks = Park.query.filter(~Park.name.contains('Playground')). \
+                       join(Image).filter(Image.image_url != None)
 
-    # parks = Park.query.filter(~Park.name.contains('Playground')). \
-    #                    filter(Park.image_url != None)
-
-
-    parks = Park.query.filter(~Park.name.contains('Playground')).join(Image).filter(Image.image_url != None)
-
-    parks_geojson = FeatureCollection([park.create_geojson_object(user_id) for park in parks]) 
+    parks_geojson = FeatureCollection([park.create_geojson_object(user_id) for park in parks])
 
     return render_template('homepage.html',
                             parks=parks_geojson)
@@ -77,8 +72,8 @@ def query_parks():
     origin = geocode_location(origin_input)
     # session['waypoints'].append(origin)
 
-    parks = Park.query.filter(~Park.name.contains('Playground'))
-
+    parks = Park.query.filter(~Park.name.contains('Playground')). \
+                       join(Image).filter(Image.image_url != None)
     # if playgrounds == None:
     # # Get parks that don't include "playground" in the name
     #     parks = Park.query.filter(~Park.name.contains('Playground'))

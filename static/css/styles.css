@@ -98,6 +98,15 @@ body {
     background:rgba(255,255,255,0.8) !important;
 }
 
+.mapboxgl-popup-img {
+    max-width: 300px;
+    max-height: 200px;
+}
+
+.mapboxgl-popup-span {
+    display: block;
+}
+
 .favorite {
     color: red;
 }
