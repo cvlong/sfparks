@@ -4,6 +4,7 @@ import requests
 from datetime import datetime
 from server import app
 from model import connect_to_db, db, Park, Popos, Posm #add Models
+from images import get_images
 
 
 def load_popos():
@@ -16,17 +17,15 @@ def load_popos():
         row = row.rstrip()
 
         name, address, latitude, longitude, subj, popos_type = row.split(",")[1:7]
-<<<<<<< HEAD
-        restroom, description, seats, hours_type, mapid = row.split(",")[-5:]
-        seating = row.split(",")[14]
+        # restroom, description, seats, hours_type, mapid = row.split(",")[-5:]
+        # seating = row.split(",")[14]
 
-        if name != address:
-            name = '\n'.join([name, address])
+        # if name != address:
+        #     name = '\n'.join([name, address])
 
-        if restroom != 'Y':
-            restroom = 'N'
-=======
->>>>>>> 3a1615c6fd2045971d6f7833baa6cec581084d2a
+        # if restroom != 'Y':
+        #     restroom = 'N'
+
 
         park = Park(park_type='popos',
                     name=name,
@@ -39,17 +38,13 @@ def load_popos():
 
         popos = Popos(park_id=park.park_id,
                       address=address,
-<<<<<<< HEAD
-                      popos_type=popos_type,
-                      restroom=restroom,
-                      description=description,
-                      seating=seating.capitalize(),
-                      hours=hours_type.capitalize())
-
-        print popos
-=======
                       popos_type=popos_type)
->>>>>>> 3a1615c6fd2045971d6f7833baa6cec581084d2a
+
+                      # TODO: add additional POPOS info
+                      # restroom=restroom,
+                      # description=description,
+                      # seating=seating.capitalize(),
+                      # hours=hours_type.capitalize()
 
         # Add popos data to the popos db session & commit session to db
         db.session.add(popos)
