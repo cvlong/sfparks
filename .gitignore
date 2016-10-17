@@ -4,3 +4,6 @@ secrets.sh
 .DS_Store
 /working_files
 heroku_deployment_notes
+
+dump.sql
+static/js/turf_TODO.js
