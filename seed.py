@@ -3,8 +3,8 @@
 import requests
 from datetime import datetime
 from server import app
-from model import connect_to_db, db, Park, Popos, Posm #add Models
-from images import get_images
+from model import connect_to_db, db, Park, Popos, Posm, Image #add Models
+from images import get_image
 
 
 def load_popos():
@@ -26,6 +26,9 @@ def load_popos():
         # if restroom != 'Y':
         #     restroom = 'N'
 
+        image_url = get_image(name, latitude, longitude, address)
+        # print name, image_url
+
 
         park = Park(park_type='popos',
                     name=name,
@@ -40,7 +43,7 @@ def load_popos():
                       address=address,
                       popos_type=popos_type)
 
-                      # TODO: add additional POPOS info
+                    # TODO: add additional POPOS info
                       # restroom=restroom,
                       # description=description,
                       # seating=seating.capitalize(),
@@ -48,6 +51,13 @@ def load_popos():
 
         # Add popos data to the popos db session & commit session to db
         db.session.add(popos)
+        db.session.commit()
+
+        image = Image(img_park_id=park.park_id,
+                      image_url=image_url)
+
+        # Add image_url to the image db session & commit session to db
+        db.session.add(image)
         db.session.commit()
     
     print "Committed to DB"
@@ -73,6 +83,10 @@ def load_posm():
             except AttributeError:
                continue
 
+        image_url = get_image(name, coordinates[1], coordinates[0])
+        # print name, image_url
+
+
         park = Park(park_type='posm',
                     name=name,
                     latitude=coordinates[1],
@@ -90,8 +104,16 @@ def load_posm():
         # Add posm data to the posm db session & commit session to db
         db.session.add(posm)
         db.session.commit()
+
+        image = Image(img_park_id=park.park_id,
+                      image_url=image_url)
+
+        # Add image_url to the image db session & commit session to db
+        db.session.add(image)
+        db.session.commit()
     
     print "Committed to DB"
+
 
 ##############################################################################
 

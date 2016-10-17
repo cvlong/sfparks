@@ -9,7 +9,7 @@ client_secret=os.environ['YELP_APP_SECRET']
 
 
 def get_yelp_token():
-
+    """Get secret token to use with Yelp API calls."""
 
     url = "https://api.yelp.com/oauth2/token"
 
@@ -30,21 +30,31 @@ def get_yelp_token():
     return ACCESS_TOKEN
 
 
-# def find_parks()
-ACCESS_TOKEN = get_yelp_token()
+def get_image(name, latitude, longitude, address = None):
+    """Find image URL using Yelp API."""
 
-url = "https://api.yelp.com/v3/businesses/search"
+    ACCESS_TOKEN = get_yelp_token()
 
-querystring = {'categories': 'parks',
-               'location': '\"San Francisco\"'
-    }
+    url = "https://api.yelp.com/v3/businesses/search"
 
-headers = {
-    'authorization': "Bearer " + ACCESS_TOKEN,
-    'cache-control': "no-cache",
-    'postman-token': "02b8b64b-11d5-6248-217d-83a157c2e721"
-    }
+    querystring = {'term': name,
+                   'location': address,
+                   'latitude': latitude,
+                   'longitude': longitude,
+                   'categories': 'parks',
+        }
 
-response = requests.request("GET", url, headers=headers, params=querystring)
+    headers = {
+        'authorization': "Bearer " + ACCESS_TOKEN,
+        'cache-control': "no-cache",
+        'postman-token': "02b8b64b-11d5-6248-217d-83a157c2e721"
+        }
 
-pprint(response.text)
+    response = requests.request("GET", url, headers=headers, params=querystring)
+
+    if json.loads(response.text)['businesses']:
+        image = json.loads(response.text)['businesses'][0]['image_url']
+    else:
+        image = None
+    
+    return image

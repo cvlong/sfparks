@@ -82,7 +82,7 @@ class Popos(db.Model):
     address = db.Column(db.String(150), nullable=False)
     popos_type = db.Column(db.String(100))
     # restroom = db.Column(db.String(20))
-    # # wifi = db.Column(db.String(20))
+    # wifi = db.Column(db.String(20))
     # description = db.Column(db.String(1000))
     # seating = db.Column(db.String(500))
     # hours = db.Column(db.String(50))
@@ -170,9 +170,9 @@ class Image(db.Model):
     __tablename__ = "images"
 
     image_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    img_park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
-    img_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
-    image_url = db.Column(db.String(255), nullable=False)
+    img_park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'))
+    img_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
+    image_url = db.Column(db.String(255), nullable=True)
 
     park = db.relationship('Park', backref=db.backref('images'))
     user = db.relationship('User', backref=db.backref('images'))

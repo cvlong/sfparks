@@ -10,7 +10,7 @@ from jinja2 import StrictUndefined
 import json
 from pprint import pprint
 from geojson import Feature, Point, FeatureCollection
-from model import db, connect_to_db, Park, Popos, Posm, User, Favorite
+from model import db, connect_to_db, Park, Popos, Posm, User, Favorite, Image
 from geofunctions import geocode_location, reverse_geocode, get_routing_times
 from mappingfunctions import find_close_parks, add_routing_time
 
@@ -34,7 +34,13 @@ def index():
     user_id = session.get('user')
     waypoints = session.get('waypoints')
 
-    parks = Park.query.filter(~Park.name.contains('Playground'))
+    # parks = Park.query.filter(~Park.name.contains('Playground')). \
+
+    # parks = Park.query.filter(~Park.name.contains('Playground')). \
+    #                    filter(Park.image_url != None)
+
+
+    parks = Park.query.filter(~Park.name.contains('Playground')).join(Image).filter(Image.image_url != None)
 
     parks_geojson = FeatureCollection([park.create_geojson_object(user_id) for park in parks]) 
 
