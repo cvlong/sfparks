@@ -40,6 +40,7 @@ class Park(db.Model):
                 'name': self.name,
                 # 'address': None, set for POSM?
                 'marker-symbol': None,
+                'routing_appx:': None,
                 'routing_time': None,
                 'routing_mins': None,
                 'favorite': 'not_favorite'
@@ -161,6 +162,27 @@ class Favorite(db.Model):
         return "<Favorite: {}, User user_id: {}, Park park_id: {}>".format(self.favorite,
                                                                            self.fav_user_id,
                                                                            self.fav_park_id)
+
+
+class Image(db.Model):
+    """Park images uploaded by users or from static data set."""
+
+    __tablename__ = "images"
+
+    image_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    img_park_id = db.Column(db.Integer, db.ForeignKey('parks.park_id'), nullable=False)
+    img_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    image_url = db.Column(db.String(255), nullable=False)
+
+    park = db.relationship('Park', backref=db.backref('images'))
+    user = db.relationship('User', backref=db.backref('images'))
+
+
+    def __repr__(self):
+        """Define how model displays."""
+
+        return "<Image url: {}, Park park_id: {}>".format(self.image_url,
+                                                          self.park_id)
 
 
 ##############################################################################
