@@ -34,12 +34,12 @@ map.on('mousemove', function(e) {
     // the button class in the popup.
 
     if (feature.properties.routing_mins === 'null') {
-        var htmlString = "<div><p>" + feature.properties.name + "</p><button id=" +
+        var htmlString = "<div><h5>" + feature.properties.name + "</h5><button id=" +
             feature.properties.id + " class=" + feature.properties.favorite +
             " onclick='updateFavorite(" + feature.properties.id +
             ")'>&#x2605; Favorite</button></div>";
     } else {
-        var htmlString = "<div><p>" + feature.properties.name + "</p><p>" + 
+        var htmlString = "<div><h5>" + feature.properties.name + "</h5>" + 
             feature.properties.routing_mins + " minutes " + routing + "</p><button id=" +
             feature.properties.id + " class=" + feature.properties.favorite +
             " onclick='updateFavorite(" + feature.properties.id +

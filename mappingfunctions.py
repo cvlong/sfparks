@@ -5,21 +5,6 @@ from geopy.distance import vincenty
 from geofunctions import geocode_location
 
 
-def format_origin(origin):
-    """Format origin input to be an instance of a named tuple."""
-    
-    if ',' in origin:
-        coords = origin.split(',')
-
-        Latlng = namedtuple('Latlng', 'latitude longitude')
-        origin = Latlng(float(coords[0]), float(coords[1]))
-
-    else:
-        origin = geocode_location(origin)
-        
-    return origin
-
-
 def find_appx_dist(time, routing):
     """Approximate distance corresponding to bounding radius heuristic based on average routing speeds."""
 
@@ -47,7 +32,8 @@ def find_close_parks(origin, time, routing, parks):
         dist = vincenty((origin.latitude, origin.longitude),
                         (park.latitude, park.longitude)).miles
         if dist < find_appx_dist(time, routing):
-            close_parks[park.name] = park
+            # close_parks[park.name] = park
+            close_parks[(dist, park.name)] = park
 
     return close_parks
 

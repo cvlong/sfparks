@@ -202,7 +202,8 @@ function findCurrentLocation(evt) {
         currentLatitude  = position.coords.latitude;
         currentLongitude = position.coords.longitude;
         $.post('/current-location.json', {'latitude': currentLatitude, 
-                                          'longitude': currentLongitude}, sendLatLngSuccess);
+                                          'longitude': currentLongitude},
+                                           sendLatLngSuccess);
 
         output.innerHTML = '';
 
