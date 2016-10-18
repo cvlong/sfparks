@@ -74,47 +74,29 @@ def query_parks():
 
     parks = Park.query.filter(~Park.name.contains('Playground')). \
                        join(Image).filter(Image.image_url != None)
-    # if playgrounds == None:
-    # # Get parks that don't include "playground" in the name
-    #     parks = Park.query.filter(~Park.name.contains('Playground'))
-    # else:
-    # # Get all park objects in database
-    #     parks = Park.query.all()
     
     # Create a dictionary containing parks within the bounding radius heuristic
     close_parks = find_close_parks(origin, time, routing, parks)
-    print len(close_parks)
-    print "CLOSE PARKS"
-    pprint(close_parks)
 
     # Create a list of GeoJSON objects for close parks
     geojson_destinations = [park.create_geojson_object(user_id)
                             for park
-                            in close_parks.values()]
-    print "GEODEST"
-    # pprint(geojson_destinations)
-        # [{'geometry': {'type': 'Point', 'coordinates': [-122.40487, 37.79277]}, 'type': 'Feature', 'properties': {'name': u'600 California St', 'address': u'600 California St'}}, 
+                            in close_parks.values()] 
 
     # Convert origin coordinates to GeoJSON object
     geojson_origin = Feature(geometry=Point((origin.longitude, origin.latitude)))
-        # Point(origin) --> Feature(geometry=geojson_origin)
-
-    # Create list of GeoJSON objects for get_routing_times argument
     
     routing_params = [geojson_origin] + geojson_destinations
-        # TODO: try .insert to list (but don't want to change geojson_destinations to use later)
-        # Will add_rounting_time() take these params as two separate lists?
+    # TODO: will add_rounting_time() take these params as two separate lists?
 
     # Create distance matrix (routing time in seconds)
     routing_times = get_routing_times(routing_params, routing)
 
-    # Create markers for the results of the user's query by adding each routing time to a park's GeoJSON properties
+    # Create markers for the user's query results by adding routing times to each
+    # park's properties
     all_markers = add_routing_time(geojson_destinations, routing_times)
-        # print type(all_markers) #LIST
-        # print type(all_markers[0]) #DICT
 
     markers = json.dumps(FeatureCollection(all_markers))
-        # print type(markers) #STRING
 
     session['origin'] = [origin.longitude, origin.latitude]
     session['routing'] = routing
@@ -204,7 +186,7 @@ def return_directions():
     routing = session.get('routing')
     coords = request.get('coords')
     # print request.form
-    #Use json.loads to read the string
+    # Use json.loads to read the string
     
     results = get_directions(route, routing)
     

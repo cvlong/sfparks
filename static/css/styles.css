@@ -12,6 +12,7 @@ body {
 
 #map {
     position:absolute;
+    z-index: -2;
     top:50px;
     bottom:0;
     left:0;
@@ -125,7 +126,11 @@ body {
 }
 
 #about {
-    padding: 50px;
+    margin-top: -50px;
+    padding: 80px;
+    text-align: justify;
+    text-justify: inter-word;
+    background-color: rgb(191,229,242);
 }
 
 /* for helper function to show lat/lng on mouse hover */

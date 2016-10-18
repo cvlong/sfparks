@@ -33,34 +33,21 @@ map.on('mousemove', function(e) {
     // class based on whether it's favorited or not; use that property to determine
     // the button class in the popup.
 
-    // if (feature.properties.routing_mins === 'null') {
-    //     var htmlString = "<div><h5>" + feature.properties.name + "</h5><button id=" +
-    //         feature.properties.id + " class=" + feature.properties.favorite +
-    //         " onclick='updateFavorite(" + feature.properties.id +
-    //         ")'>&#x2605; Favorite</button></div>";
-    // } else {
-    //     var htmlString = "<div><h5>" + feature.properties.name + "</h5>" + 
-    //         feature.properties.routing_mins + " minutes " + routing + "</p><button id=" +
-    //         feature.properties.id + " class=" + feature.properties.favorite +
-    //         " onclick='updateFavorite(" + feature.properties.id +
-    //         ")'>&#x2605; Favorite</button></div>";
-    // }
-
-
     if (feature.properties.routing_mins === 'null') {
-        var htmlString = "<div><h5>" + feature.properties.name + "</h5><button id=" +
-            feature.properties.id + " class=" + feature.properties.favorite +
-            " onclick='updateFavorite(" + feature.properties.id +
-            ")'>&#x2605; Favorite</button></div>";
+        var htmlString = "<div><h5>" + feature.properties.name + 
+            "</h5><img class='mapboxgl-popup-img' src=" + feature.properties.img_url
+            + "></p><button id=" + feature.properties.id + " class=" + 
+            feature.properties.favorite + " onclick='updateFavorite(" + 
+            feature.properties.id + ")'>&#x2605; Favorite</button></div>";
     } else {
         var htmlString = "<div><h5>" + feature.properties.name + 
             "</h5><img class='mapboxgl-popup-img' src=" + feature.properties.img_url +
-            "><span class='mapboxgl-popup-span'>" + feature.properties.routing_mins + " minutes " + routing + "</span></p><button id=" +
+            "><span class='mapboxgl-popup-span'>" + feature.properties.routing_mins +
+            " minutes " + routing + "</span></p><button id=" +
             feature.properties.id + " class=" + feature.properties.favorite +
             " onclick='updateFavorite(" + feature.properties.id +
             ")'>&#x2605; Favorite</button></div>";
     }
-
 
     popup.setLngLat(feature.geometry.coordinates)
         .setHTML(htmlString)
