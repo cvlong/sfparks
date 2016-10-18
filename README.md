@@ -23,6 +23,7 @@ https://sfparks.herokuapp.com/
 - Bootstrap
 - HTML
 - CSS
+- Yelp API
 - Turf.js
 - Mapbox GL JS
 
